@@ -53,6 +53,12 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>NSCameraUsageDescription</key>
+	<string>汚れを撮影して診断するためにカメラを使用します</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>汚れの写真を選択するためにフォトライブラリにアクセスします</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>診断結果の画像を保存するためにフォトライブラリにアクセスします</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
