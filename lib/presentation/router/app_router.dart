@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../pages/camera/camera_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/onboarding/onboarding_page.dart';
 import '../pages/shell/main_shell_page.dart';
@@ -71,7 +72,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.camera,
         name: AppRouteNames.camera,
-        builder: (context, state) => const _PlaceholderPage(title: 'カメラ'),
+        builder: (context, state) => const CameraPage(),
       ),
 
       // 場所選択画面
