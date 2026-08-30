@@ -6,4 +6,15 @@ part of 'cached_recipes_dao.dart';
 mixin _$CachedRecipesDaoMixin on DatabaseAccessor<AppDatabase> {
   $CachedRecipesTableTable get cachedRecipesTable =>
       attachedDatabase.cachedRecipesTable;
+  CachedRecipesDaoManager get managers => CachedRecipesDaoManager(this);
+}
+
+class CachedRecipesDaoManager {
+  final _$CachedRecipesDaoMixin _db;
+  CachedRecipesDaoManager(this._db);
+  $$CachedRecipesTableTableTableManager get cachedRecipesTable =>
+      $$CachedRecipesTableTableTableManager(
+        _db.attachedDatabase,
+        _db.cachedRecipesTable,
+      );
 }

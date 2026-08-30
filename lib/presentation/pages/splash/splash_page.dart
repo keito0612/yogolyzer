@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../shared/constants/app_colors.dart';
 import '../../router/app_routes.dart';
-import 'splash_view_model.dart';
+import '../../view_models/splash/splash_view_model.dart';
 
 /// スプラッシュ画面
 class SplashPage extends ConsumerStatefulWidget {
@@ -28,14 +28,11 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   Widget build(BuildContext context) {
     // 状態を監視して遷移
     ref.listen<SplashState>(splashViewModelProvider, (previous, next) {
-      switch (next) {
-        case SplashState.navigateToOnboarding:
-          context.go(AppRoutes.onboarding);
-        case SplashState.navigateToHome:
-          context.go(AppRoutes.home);
-        case SplashState.loading:
-          break;
-      }
+      next.when(
+        loading: () {},
+        navigateToOnboarding: () => context.go(AppRoutes.onboarding),
+        navigateToHome: () => context.go(AppRoutes.home),
+      );
     });
 
     return Scaffold(

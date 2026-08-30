@@ -1,23 +1,27 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+part 'splash_view_model.freezed.dart';
+
 /// スプラッシュ画面の状態
-enum SplashState {
+@freezed
+sealed class SplashState with _$SplashState {
   /// 初期化中
-  loading,
+  const factory SplashState.loading() = SplashStateLoading;
 
   /// オンボーディングへ遷移
-  navigateToOnboarding,
+  const factory SplashState.navigateToOnboarding() = SplashStateNavigateToOnboarding;
 
   /// ホームへ遷移
-  navigateToHome,
+  const factory SplashState.navigateToHome() = SplashStateNavigateToHome;
 }
 
 /// スプラッシュ画面のViewModel
 class SplashViewModel extends Notifier<SplashState> {
   @override
   SplashState build() {
-    return SplashState.loading;
+    return const SplashState.loading();
   }
 
   /// 初期化処理
@@ -32,9 +36,9 @@ class SplashViewModel extends Notifier<SplashState> {
 
     // 遷移先を決定
     if (hasCompletedOnboarding) {
-      state = SplashState.navigateToHome;
+      state = const SplashState.navigateToHome();
     } else {
-      state = SplashState.navigateToOnboarding;
+      state = const SplashState.navigateToOnboarding();
     }
   }
 }
