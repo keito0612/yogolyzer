@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../pages/camera/camera_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/onboarding/onboarding_page.dart';
+import '../pages/select_location/select_location_page.dart';
 import '../pages/shell/main_shell_page.dart';
 import '../pages/splash/splash_page.dart';
 import 'app_routes.dart';
@@ -79,7 +80,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.selectLocation,
         name: AppRouteNames.selectLocation,
-        builder: (context, state) => const _PlaceholderPage(title: '場所選択'),
+        builder: (context, state) {
+          final imagePath = state.extra as String? ?? '';
+          return SelectLocationPage(imagePath: imagePath);
+        },
       ),
 
       // 素材選択画面
