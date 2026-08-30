@@ -28,14 +28,11 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   Widget build(BuildContext context) {
     // 状態を監視して遷移
     ref.listen<SplashState>(splashViewModelProvider, (previous, next) {
-      switch (next) {
-        case SplashState.navigateToOnboarding:
-          context.go(AppRoutes.onboarding);
-        case SplashState.navigateToHome:
-          context.go(AppRoutes.home);
-        case SplashState.loading:
-          break;
-      }
+      next.when(
+        loading: () {},
+        navigateToOnboarding: () => context.go(AppRoutes.onboarding),
+        navigateToHome: () => context.go(AppRoutes.home),
+      );
     });
 
     return Scaffold(

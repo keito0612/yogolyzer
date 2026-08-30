@@ -43,7 +43,6 @@ dependencies:
   intl: ^0.20.1
   shared_preferences: ^2.5.0
   connectivity_plus: any
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -290,6 +290,183 @@
 | **Domain** | ビジネスルール | Entity, Repository Interface, Value Object |
 | **Infrastructure** | 外部接続 | Repository実装, API Client, drift, 外部SDK |
 
+### MVVM パターン（Presentation層の詳細）
+
+Presentation層はMVVMパターンで構成する。**ViewにロジックやAPIコールを書かない**。
+
+```
+┌─────────────────────────────────────────────────┐
+│                    View                          │
+│        (StatelessWidget / ConsumerWidget)        │
+│                                                  │
+│  責務:                                           │
+│  - UIの描画のみ                                  │
+│  - ref.watch() で状態を監視                      │
+│  - ref.listen() で状態変化時のアクション         │
+│  - ユーザー操作を ViewModel に委譲               │
+│                                                  │
+│  禁止:                                           │
+│  - ビジネスロジック                              │
+│  - API呼び出し                                   │
+│  - SharedPreferences等の直接アクセス             │
+└─────────────────────────────────────────────────┘
+                      ↓↑ ref.watch / ref.read
+┌─────────────────────────────────────────────────┐
+│                 ViewModel                        │
+│           (Riverpod Notifier)                    │
+│                                                  │
+│  責務:                                           │
+│  - 画面の状態管理 (state)                        │
+│  - ユーザー操作のハンドリング                    │
+│  - UseCase / Repository の呼び出し               │
+│  - 状態遷移ロジック                              │
+│                                                  │
+│  実装:                                           │
+│  - class XxxViewModel extends Notifier<XxxState> │
+│  - final xxxViewModelProvider = NotifierProvider │
+└─────────────────────────────────────────────────┘
+                      ↓↑
+┌─────────────────────────────────────────────────┐
+│          UseCase / Repository / Service          │
+└─────────────────────────────────────────────────┘
+```
+
+#### 実装例
+
+```dart
+// ═══════════════════════════════════════════════
+// 1. State（sealed classで定義）
+// ═══════════════════════════════════════════════
+sealed class SplashState {
+  const SplashState();
+
+  /// パターンマッチング用
+  T when<T>({
+    required T Function() loading,
+    required T Function() navigateToOnboarding,
+    required T Function() navigateToHome,
+  }) {
+    return switch (this) {
+      SplashStateLoading() => loading(),
+      SplashStateNavigateToOnboarding() => navigateToOnboarding(),
+      SplashStateNavigateToHome() => navigateToHome(),
+    };
+  }
+}
+
+final class SplashStateLoading extends SplashState {
+  const SplashStateLoading();
+}
+
+final class SplashStateNavigateToOnboarding extends SplashState {
+  const SplashStateNavigateToOnboarding();
+}
+
+final class SplashStateNavigateToHome extends SplashState {
+  const SplashStateNavigateToHome();
+}
+
+// ═══════════════════════════════════════════════
+// 2. ViewModel（ロジック）
+// ═══════════════════════════════════════════════
+class SplashViewModel extends Notifier<SplashState> {
+  @override
+  SplashState build() => const SplashStateLoading();
+
+  Future<void> initialize() async {
+    await Future.delayed(const Duration(seconds: 2));
+    final prefs = await SharedPreferences.getInstance();
+    final hasCompleted = prefs.getBool('hasCompletedOnboarding') ?? false;
+
+    state = hasCompleted
+        ? const SplashStateNavigateToHome()
+        : const SplashStateNavigateToOnboarding();
+  }
+}
+
+final splashViewModelProvider =
+    NotifierProvider.autoDispose<SplashViewModel, SplashState>(
+      SplashViewModel.new,
+    );
+
+// ═══════════════════════════════════════════════
+// 3. View（UIのみ）
+// ═══════════════════════════════════════════════
+class SplashPage extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends ConsumerState<SplashPage> {
+  @override
+  void initState() {
+    super.initState();
+    // ViewModelの初期化を呼び出すだけ
+    Future.microtask(() {
+      ref.read(splashViewModelProvider.notifier).initialize();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // 状態変化を監視してナビゲーション（whenでパターンマッチ）
+    ref.listen<SplashState>(splashViewModelProvider, (_, next) {
+      next.when(
+        loading: () {},
+        navigateToOnboarding: () => context.go('/onboarding'),
+        navigateToHome: () => context.go('/home'),
+      );
+    });
+
+    // UIの描画のみ（ロジックなし）
+    return Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
+}
+```
+
+#### なぜ sealed class を使うのか
+
+| enum | sealed class |
+|------|--------------|
+| データを持てない | 各状態にデータを持てる（例: `Error(String message)`） |
+| パターンマッチが限定的 | `when` / `maybeWhen` でパターンマッチ |
+| 拡張が難しい | 新しい状態を追加しやすい |
+
+```dart
+// sealed class なら状態にデータを持てる
+sealed class DiagnosisState {
+  const DiagnosisState();
+}
+final class DiagnosisLoading extends DiagnosisState { ... }
+final class DiagnosisSuccess extends DiagnosisState {
+  final Diagnosis result;  // データを保持
+  const DiagnosisSuccess(this.result);
+}
+final class DiagnosisError extends DiagnosisState {
+  final String message;    // エラーメッセージを保持
+  const DiagnosisError(this.message);
+}
+```
+
+#### ファイル構成
+
+```
+lib/presentation/pages/splash/
+├── splash_page.dart           # View（UI）
+└── splash_view_model.dart     # ViewModel（状態・ロジック）
+```
+
+#### よくある間違い
+
+| ❌ NG | ✅ OK |
+|-------|-------|
+| Viewで直接 `SharedPreferences.getInstance()` | ViewModelで `SharedPreferences` を使う |
+| Viewで直接 `context.go()` の条件分岐 | ViewModelで状態を変え、Viewは `ref.listen` で反応 |
+| Viewに `if (isFirstTime) ...` のロジック | ViewModelに状態遷移ロジックを置く |
+| StatefulWidgetで `setState()` で状態管理 | Riverpod Notifier で `state = ...` |
+
 ### フォルダ構成（Flutter）
 
 ```
