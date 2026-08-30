@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../pages/shell/main_shell_page.dart';
+import '../pages/splash/splash_page.dart';
 import 'app_routes.dart';
 
 /// ナビゲーションキー
@@ -20,7 +21,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.splash,
         name: AppRouteNames.splash,
-        builder: (context, state) => const _PlaceholderPage(title: 'スプラッシュ'),
+        builder: (context, state) => const SplashPage(),
       ),
 
       // オンボーディング画面
