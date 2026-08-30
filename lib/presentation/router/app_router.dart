@@ -6,8 +6,10 @@ import '../pages/camera/camera_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/onboarding/onboarding_page.dart';
 import '../pages/select_location/select_location_page.dart';
+import '../pages/select_material/select_material_page.dart';
 import '../pages/shell/main_shell_page.dart';
 import '../pages/splash/splash_page.dart';
+import '../view_models/select_location/select_location_view_model.dart';
 import 'app_routes.dart';
 
 /// ナビゲーションキー
@@ -90,7 +92,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.selectMaterial,
         name: AppRouteNames.selectMaterial,
-        builder: (context, state) => const _PlaceholderPage(title: '素材選択'),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          final imagePath = extra['imagePath'] as String? ?? '';
+          final location = extra['location'] as String? ?? '';
+          final locationType = extra['locationType'] as LocationType?;
+          return SelectMaterialPage(
+            imagePath: imagePath,
+            locationName: location,
+            locationType: locationType,
+          );
+        },
       ),
 
       // 診断中画面
