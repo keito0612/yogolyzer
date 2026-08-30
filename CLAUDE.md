@@ -331,16 +331,23 @@ Presentation層はMVVMパターンで構成する。**ViewにロジックやAPI�
 └─────────────────────────────────────────────────┘
 ```
 
-#### 実装例
+#### 実装例（freezed を使用）
 
 ```dart
 // ═══════════════════════════════════════════════
-// 1. State（状態の定義）
+// 1. State（freezed で定義）
 // ═══════════════════════════════════════════════
-enum SplashState {
-  loading,
-  navigateToOnboarding,
-  navigateToHome,
+// splash_view_model.dart
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'splash_view_model.freezed.dart';
+
+@freezed
+sealed class SplashState with _$SplashState {
+  const factory SplashState.loading() = SplashStateLoading;
+  const factory SplashState.navigateToOnboarding() = SplashStateNavigateToOnboarding;
+  const factory SplashState.navigateToHome() = SplashStateNavigateToHome;
 }
 
 // ═══════════════════════════════════════════════
@@ -348,7 +355,7 @@ enum SplashState {
 // ═══════════════════════════════════════════════
 class SplashViewModel extends Notifier<SplashState> {
   @override
-  SplashState build() => SplashState.loading;
+  SplashState build() => const SplashState.loading();
 
   Future<void> initialize() async {
     await Future.delayed(const Duration(seconds: 2));
@@ -356,8 +363,8 @@ class SplashViewModel extends Notifier<SplashState> {
     final hasCompleted = prefs.getBool('hasCompletedOnboarding') ?? false;
 
     state = hasCompleted
-        ? SplashState.navigateToHome
-        : SplashState.navigateToOnboarding;
+        ? const SplashState.navigateToHome()
+        : const SplashState.navigateToOnboarding();
   }
 }
 
@@ -369,6 +376,8 @@ final splashViewModelProvider =
 // ═══════════════════════════════════════════════
 // 3. View（UIのみ）
 // ═══════════════════════════════════════════════
+// splash_page.dart
+
 class SplashPage extends ConsumerStatefulWidget {
   @override
   ConsumerState<SplashPage> createState() => _SplashPageState();
@@ -388,14 +397,11 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   Widget build(BuildContext context) {
     // 状態変化を監視してナビゲーション
     ref.listen<SplashState>(splashViewModelProvider, (_, next) {
-      switch (next) {
-        case SplashState.navigateToOnboarding:
-          context.go('/onboarding');
-        case SplashState.navigateToHome:
-          context.go('/home');
-        case SplashState.loading:
-          break;
-      }
+      next.when(
+        loading: () {},
+        navigateToOnboarding: () => context.go('/onboarding'),
+        navigateToHome: () => context.go('/home'),
+      );
     });
 
     // UIの描画のみ（ロジックなし）
@@ -406,12 +412,34 @@ class _SplashPageState extends ConsumerState<SplashPage> {
 }
 ```
 
+#### freezed を使う理由
+
+| 項目 | 説明 |
+|------|------|
+| **パターンマッチング** | `when` / `maybeWhen` で漏れなく状態を処理 |
+| **イミュータブル** | 状態オブジェクトが不変で安全 |
+| **コード生成** | ボイラープレートを自動生成 |
+| **copyWith** | 状態の一部だけを変更できる |
+
+#### コード生成
+
+freezed ファイルを生成するには以下を実行:
+
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
+
 #### ファイル構成
 
 ```
-lib/presentation/pages/splash/
-├── splash_page.dart           # View（UI）
-└── splash_view_model.dart     # ViewModel（状態・ロジック）
+lib/presentation/
+├── pages/                     # View（UIのみ）
+│   └── splash/
+│       └── splash_page.dart
+└── view_models/               # ViewModel（状態・ロジック）
+    └── splash/                # 機能ごとにフォルダ分け
+        ├── splash_view_model.dart
+        └── splash_view_model.freezed.dart
 ```
 
 #### よくある間違い
@@ -431,26 +459,34 @@ lib/
 ├── app.dart                    # アプリ設定・ルーティング
 │
 ├── presentation/               # Presentation層
-│   ├── pages/                  # 画面
+│   ├── pages/                  # 画面（View - UIのみ）
+│   │   ├── splash/
+│   │   │   └── splash_page.dart
+│   │   ├── onboarding/
+│   │   │   └── onboarding_page.dart
 │   │   ├── home/
-│   │   │   ├── home_page.dart
-│   │   │   └── home_view_model.dart
+│   │   │   └── home_page.dart
 │   │   ├── camera/
-│   │   │   ├── camera_page.dart
-│   │   │   └── camera_view_model.dart
+│   │   │   └── camera_page.dart
 │   │   ├── select_location/
 │   │   ├── select_material/
 │   │   ├── diagnosis_result/
 │   │   ├── history/
 │   │   └── settings/
-│   ├── widgets/                # 共通ウィジェット
-│   │   ├── app_button.dart
-│   │   ├── app_card.dart
-│   │   └── selection_chip.dart
-│   └── providers/              # Riverpod providers (ViewModel)
-│       ├── diagnosis_provider.dart
-│       ├── user_provider.dart
-│       └── subscription_provider.dart
+│   ├── view_models/            # ViewModel（状態・ロジック）
+│   │   ├── splash/             # 機能ごとにフォルダ分け
+│   │   │   ├── splash_view_model.dart
+│   │   │   └── splash_view_model.freezed.dart
+│   │   ├── onboarding/
+│   │   │   ├── onboarding_view_model.dart
+│   │   │   └── onboarding_view_model.freezed.dart
+│   │   ├── home/
+│   │   │   └── home_view_model.dart
+│   │   └── ...
+│   └── widgets/                # 共通ウィジェット
+│       ├── app_button.dart
+│       ├── app_card.dart
+│       └── selection_chip.dart
 │
 ├── application/                # Application層
 │   └── usecases/

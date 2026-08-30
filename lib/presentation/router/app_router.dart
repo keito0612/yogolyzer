@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../pages/onboarding/onboarding_page.dart';
 import '../pages/shell/main_shell_page.dart';
 import '../pages/splash/splash_page.dart';
 import 'app_routes.dart';
@@ -28,8 +29,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.onboarding,
         name: AppRouteNames.onboarding,
-        builder: (context, state) =>
-            const _PlaceholderPage(title: 'オンボーディング'),
+        builder: (context, state) => const OnboardingPage(),
       ),
 
       // メインシェル（BottomNavigation付き）
