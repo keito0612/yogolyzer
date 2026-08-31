@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/constants/app_colors.dart';
 import '../../router/app_routes.dart';
@@ -8,7 +8,7 @@ import '../../view_models/home/home_view_model.dart';
 import '../../widgets/app_button.dart';
 
 /// ホーム画面
-class HomePage extends ConsumerWidget {
+class HomePage extends HookConsumerWidget {
   const HomePage({super.key});
 
   @override

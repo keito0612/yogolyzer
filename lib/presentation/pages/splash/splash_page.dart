@@ -1,31 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/constants/app_colors.dart';
 import '../../router/app_routes.dart';
 import '../../view_models/splash/splash_view_model.dart';
 
 /// スプラッシュ画面
-class SplashPage extends ConsumerStatefulWidget {
+class SplashPage extends HookConsumerWidget {
   const SplashPage({super.key});
 
   @override
-  ConsumerState<SplashPage> createState() => _SplashPageState();
-}
-
-class _SplashPageState extends ConsumerState<SplashPage> {
-  @override
-  void initState() {
-    super.initState();
+  Widget build(BuildContext context, WidgetRef ref) {
     // 初期化処理を開始
-    Future.microtask(() {
-      ref.read(splashViewModelProvider.notifier).initialize();
-    });
-  }
+    useEffect(() {
+      Future.microtask(() {
+        ref.read(splashViewModelProvider.notifier).initialize();
+      });
+      return null;
+    }, []);
 
-  @override
-  Widget build(BuildContext context) {
     // 状態を監視して遷移
     ref.listen<SplashState>(splashViewModelProvider, (previous, next) {
       next.when(

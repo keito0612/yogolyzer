@@ -1,8 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/constants/app_colors.dart';
 import '../../../shared/constants/app_spacing.dart';
@@ -13,7 +14,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/selection_chip.dart';
 
 /// 素材選択画面
-class SelectMaterialPage extends ConsumerStatefulWidget {
+class SelectMaterialPage extends HookConsumerWidget {
   const SelectMaterialPage({
     super.key,
     required this.imagePath,
@@ -26,26 +27,21 @@ class SelectMaterialPage extends ConsumerStatefulWidget {
   final LocationType? locationType;
 
   @override
-  ConsumerState<SelectMaterialPage> createState() => _SelectMaterialPageState();
-}
-
-class _SelectMaterialPageState extends ConsumerState<SelectMaterialPage> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(selectMaterialViewModelProvider.notifier).initialize(
-            imagePath: widget.imagePath,
-            locationName: widget.locationName,
-            locationType: widget.locationType,
-          );
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(selectMaterialViewModelProvider);
     final viewModel = ref.read(selectMaterialViewModelProvider.notifier);
+
+    // 初期化
+    useEffect(() {
+      Future.microtask(() {
+        viewModel.initialize(
+          imagePath: imagePath,
+          locationName: locationName,
+          locationType: locationType,
+        );
+      });
+      return null;
+    }, []);
 
     return Scaffold(
       appBar: AppBar(
@@ -65,7 +61,7 @@ class _SelectMaterialPageState extends ConsumerState<SelectMaterialPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // 撮影画像サムネイル + 場所表示
-                    _buildHeader(state),
+                    _buildHeader(context, state),
 
                     const SizedBox(height: AppSpacing.lg),
 
@@ -83,21 +79,21 @@ class _SelectMaterialPageState extends ConsumerState<SelectMaterialPage> {
                     const SizedBox(height: AppSpacing.md),
 
                     // ヒントテキスト
-                    _buildHintText(),
+                    _buildHintText(context),
                   ],
                 ),
               ),
             ),
 
             // 診断ボタン
-            _buildDiagnoseButton(state, viewModel),
+            _buildDiagnoseButton(context, state, viewModel),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(SelectMaterialState state) {
+  Widget _buildHeader(BuildContext context, SelectMaterialState state) {
     return Row(
       children: [
         // サムネイル
@@ -109,9 +105,9 @@ class _SelectMaterialPageState extends ConsumerState<SelectMaterialPage> {
             border: Border.all(color: AppColors.border),
           ),
           clipBehavior: Clip.antiAlias,
-          child: widget.imagePath.isNotEmpty
+          child: imagePath.isNotEmpty
               ? Image.file(
-                  File(widget.imagePath),
+                  File(imagePath),
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return const Icon(
@@ -138,15 +134,15 @@ class _SelectMaterialPageState extends ConsumerState<SelectMaterialPage> {
             const SizedBox(height: 4),
             Row(
               children: [
-                if (widget.locationType != null) ...[
+                if (locationType != null) ...[
                   Text(
-                    widget.locationType!.emoji,
+                    locationType!.emoji,
                     style: const TextStyle(fontSize: 20),
                   ),
                   const SizedBox(width: 8),
                 ],
                 Text(
-                  widget.locationName,
+                  locationName,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
@@ -177,7 +173,7 @@ class _SelectMaterialPageState extends ConsumerState<SelectMaterialPage> {
     );
   }
 
-  Widget _buildHintText() {
+  Widget _buildHintText(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -206,6 +202,7 @@ class _SelectMaterialPageState extends ConsumerState<SelectMaterialPage> {
   }
 
   Widget _buildDiagnoseButton(
+    BuildContext context,
     SelectMaterialState state,
     SelectMaterialViewModel viewModel,
   ) {
