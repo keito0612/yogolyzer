@@ -1,8 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/constants/app_colors.dart';
 import '../../../shared/constants/app_spacing.dart';
@@ -12,7 +13,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/selection_chip.dart';
 
 /// 場所選択画面
-class SelectLocationPage extends ConsumerStatefulWidget {
+class SelectLocationPage extends HookConsumerWidget {
   const SelectLocationPage({
     super.key,
     required this.imagePath,
@@ -21,25 +22,17 @@ class SelectLocationPage extends ConsumerStatefulWidget {
   final String imagePath;
 
   @override
-  ConsumerState<SelectLocationPage> createState() => _SelectLocationPageState();
-}
-
-class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
-  @override
-  void initState() {
-    super.initState();
-    // 初期化時に画像パスを設定
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
-          .read(selectLocationViewModelProvider.notifier)
-          .setImagePath(widget.imagePath);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(selectLocationViewModelProvider);
     final viewModel = ref.read(selectLocationViewModelProvider.notifier);
+
+    // 初期化時に画像パスを設定
+    useEffect(() {
+      Future.microtask(() {
+        viewModel.setImagePath(imagePath);
+      });
+      return null;
+    }, []);
 
     return Scaffold(
       appBar: AppBar(
@@ -59,7 +52,7 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // 撮影画像サムネイル
-                    _buildThumbnail(),
+                    _buildThumbnail(context),
 
                     const SizedBox(height: AppSpacing.lg),
 
@@ -72,13 +65,13 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                     const SizedBox(height: AppSpacing.lg),
 
                     // 選択グリッド
-                    _buildSelectionGrid(state, viewModel),
+                    _buildSelectionGrid(context, state, viewModel),
 
                     // 「その他」選択時のカスタムテキスト表示
                     if (state.selectedIndex == LocationType.other.index &&
                         state.customLocationText.isNotEmpty) ...[
                       const SizedBox(height: AppSpacing.md),
-                      _buildCustomLocationDisplay(state),
+                      _buildCustomLocationDisplay(context, ref, state),
                     ],
                   ],
                 ),
@@ -86,14 +79,14 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
             ),
 
             // 次へボタン
-            _buildNextButton(state, viewModel),
+            _buildNextButton(context, state, viewModel),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildThumbnail() {
+  Widget _buildThumbnail(BuildContext context) {
     return Center(
       child: Container(
         width: 64,
@@ -103,9 +96,9 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
           border: Border.all(color: AppColors.border),
         ),
         clipBehavior: Clip.antiAlias,
-        child: widget.imagePath.isNotEmpty
+        child: imagePath.isNotEmpty
             ? Image.file(
-                File(widget.imagePath),
+                File(imagePath),
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return const Icon(Icons.image, color: AppColors.textDisabled);
@@ -117,6 +110,7 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
   }
 
   Widget _buildSelectionGrid(
+    BuildContext context,
     SelectLocationState state,
     SelectLocationViewModel viewModel,
   ) {
@@ -139,14 +133,18 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
 
         // 「その他」を選択したらBottomSheetを表示
         if (index == LocationType.other.index) {
-          _showCustomLocationBottomSheet(viewModel, state.customLocationText);
+          _showCustomLocationBottomSheet(context, viewModel, state.customLocationText);
         }
       },
       chipSize: SelectionChipSize.large,
     );
   }
 
-  Widget _buildCustomLocationDisplay(SelectLocationState state) {
+  Widget _buildCustomLocationDisplay(
+    BuildContext context,
+    WidgetRef ref,
+    SelectLocationState state,
+  ) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -171,6 +169,7 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
             color: AppColors.primary,
             onPressed: () {
               _showCustomLocationBottomSheet(
+                context,
                 ref.read(selectLocationViewModelProvider.notifier),
                 state.customLocationText,
               );
@@ -182,6 +181,7 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
   }
 
   Widget _buildNextButton(
+    BuildContext context,
     SelectLocationState state,
     SelectLocationViewModel viewModel,
   ) {
@@ -218,11 +218,10 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
   }
 
   void _showCustomLocationBottomSheet(
+    BuildContext context,
     SelectLocationViewModel viewModel,
     String initialText,
   ) {
-    final controller = TextEditingController(text: initialText);
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -230,58 +229,79 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: AppSpacing.lg,
-            right: AppSpacing.lg,
-            top: AppSpacing.lg,
-            bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
+        return _CustomLocationBottomSheet(
+          viewModel: viewModel,
+          initialText: initialText,
+        );
+      },
+    );
+  }
+}
+
+/// カスタム場所入力のBottomSheet
+class _CustomLocationBottomSheet extends HookWidget {
+  const _CustomLocationBottomSheet({
+    required this.viewModel,
+    required this.initialText,
+  });
+
+  final SelectLocationViewModel viewModel;
+  final String initialText;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = useTextEditingController(text: initialText);
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: AppSpacing.lg,
+        right: AppSpacing.lg,
+        top: AppSpacing.lg,
+        bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '場所を入力',
+            style: Theme.of(context).textTheme.titleMedium,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: AppSpacing.md),
+          TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: '例: 階段、ガレージ、物置など',
+              border: OutlineInputBorder(),
+            ),
+            textInputAction: TextInputAction.done,
+            onSubmitted: (value) {
+              viewModel.setCustomLocationText(value.trim());
+              Navigator.pop(context);
+            },
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Text(
-                '場所を入力',
-                style: Theme.of(context).textTheme.titleMedium,
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('キャンセル'),
               ),
-              const SizedBox(height: AppSpacing.md),
-              TextField(
-                controller: controller,
-                autofocus: true,
-                decoration: const InputDecoration(
-                  hintText: '例: 階段、ガレージ、物置など',
-                  border: OutlineInputBorder(),
-                ),
-                textInputAction: TextInputAction.done,
-                onSubmitted: (value) {
-                  viewModel.setCustomLocationText(value.trim());
+              const SizedBox(width: AppSpacing.sm),
+              AppButton(
+                label: '確定',
+                onPressed: () {
+                  viewModel.setCustomLocationText(controller.text.trim());
                   Navigator.pop(context);
                 },
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('キャンセル'),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  AppButton(
-                    label: '確定',
-                    onPressed: () {
-                      viewModel.setCustomLocationText(controller.text.trim());
-                      Navigator.pop(context);
-                    },
-                    size: AppButtonSize.small,
-                  ),
-                ],
+                size: AppButtonSize.small,
               ),
             ],
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

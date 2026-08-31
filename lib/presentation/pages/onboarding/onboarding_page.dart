@@ -1,36 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/constants/app_colors.dart';
 import '../../router/app_routes.dart';
 import '../../view_models/onboarding/onboarding_view_model.dart';
 
 /// オンボーディング画面
-class OnboardingPage extends ConsumerStatefulWidget {
+class OnboardingPage extends HookConsumerWidget {
   const OnboardingPage({super.key});
 
   @override
-  ConsumerState<OnboardingPage> createState() => _OnboardingPageState();
-}
-
-class _OnboardingPageState extends ConsumerState<OnboardingPage> {
-  late final PageController _pageController;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pageController = usePageController();
     final state = ref.watch(onboardingViewModelProvider);
     final viewModel = ref.read(onboardingViewModelProvider.notifier);
 
@@ -43,18 +26,21 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     });
 
     // ページ変更を同期
-    state.whenOrNull(
-      viewing: (currentPage) {
-        if (_pageController.hasClients &&
-            _pageController.page?.round() != currentPage) {
-          _pageController.animateToPage(
-            currentPage,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
-        }
-      },
-    );
+    useEffect(() {
+      state.whenOrNull(
+        viewing: (currentPage) {
+          if (pageController.hasClients &&
+              pageController.page?.round() != currentPage) {
+            pageController.animateToPage(
+              currentPage,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
+        },
+      );
+      return null;
+    }, [state]);
 
     return Scaffold(
       body: SafeArea(
@@ -66,7 +52,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
             // ページコンテンツ
             Expanded(
               child: PageView(
-                controller: _pageController,
+                controller: pageController,
                 onPageChanged: viewModel.onPageChanged,
                 children: const [
                   _OnboardingSlide(
