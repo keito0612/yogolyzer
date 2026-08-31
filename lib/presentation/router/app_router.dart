@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../pages/camera/camera_page.dart';
+import '../pages/diagnosing/diagnosing_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/onboarding/onboarding_page.dart';
 import '../pages/select_location/select_location_page.dart';
@@ -109,7 +110,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.diagnosing,
         name: AppRouteNames.diagnosing,
-        builder: (context, state) => const _PlaceholderPage(title: '診断中'),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          final imagePath = extra['imagePath'] as String? ?? '';
+          final location = extra['location'] as String? ?? '';
+          final material = extra['material'] as String? ?? '';
+          return DiagnosingPage(
+            imagePath: imagePath,
+            location: location,
+            material: material,
+          );
+        },
       ),
 
       // 診断結果画面
