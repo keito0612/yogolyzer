@@ -8,6 +8,7 @@ import '../pages/diagnosis_result/diagnosis_result_page.dart';
 import '../pages/history/history_page.dart';
 import '../pages/history_detail/history_detail_page.dart';
 import '../pages/home/home_page.dart';
+import '../pages/login/login_page.dart';
 import '../pages/onboarding/onboarding_page.dart';
 import '../pages/settings/settings_page.dart';
 import '../pages/select_location/select_location_page.dart';
@@ -151,7 +152,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.login,
         name: AppRouteNames.login,
-        builder: (context, state) => const _PlaceholderPage(title: 'ログイン'),
+        builder: (context, state) => const LoginPage(),
       ),
 
       // プレミアム画面（モーダル）
