@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../pages/camera/camera_page.dart';
 import '../pages/diagnosing/diagnosing_page.dart';
 import '../pages/diagnosis_result/diagnosis_result_page.dart';
+import '../pages/history/history_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/onboarding/onboarding_page.dart';
 import '../pages/select_location/select_location_page.dart';
@@ -58,7 +59,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: AppRoutes.history,
             name: AppRouteNames.history,
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: _PlaceholderPage(title: '履歴'),
+              child: HistoryPage(),
             ),
           ),
 
