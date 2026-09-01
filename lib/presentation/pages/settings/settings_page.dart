@@ -26,6 +26,7 @@ class SettingsPage extends HookConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('設定'),
+        automaticallyImplyLeading: false,
       ),
       body: state.when(
         loading: () => const Center(

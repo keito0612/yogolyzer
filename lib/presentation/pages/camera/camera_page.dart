@@ -33,7 +33,13 @@ class CameraPage extends HookConsumerWidget {
         title: const Text('汚れを撮影'),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.home);
+            }
+          },
         ),
       ),
       body: state.when(
