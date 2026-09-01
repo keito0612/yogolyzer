@@ -10,6 +10,7 @@ import '../pages/history_detail/history_detail_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/login/login_page.dart';
 import '../pages/onboarding/onboarding_page.dart';
+import '../pages/premium/premium_page.dart';
 import '../pages/settings/settings_page.dart';
 import '../pages/select_location/select_location_page.dart';
 import '../pages/select_material/select_material_page.dart';
@@ -161,7 +162,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: AppRouteNames.premium,
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
-          child: const _PlaceholderPage(title: 'プレミアム'),
+          child: const PremiumPage(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return SlideTransition(
               position: Tween<Offset>(
@@ -206,43 +207,3 @@ final routerProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
-
-/// プレースホルダーページ（実際の画面実装まで使用）
-class _PlaceholderPage extends StatelessWidget {
-  const _PlaceholderPage({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.construction,
-              size: 64,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '実装中...',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
