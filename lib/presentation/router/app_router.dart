@@ -9,6 +9,7 @@ import '../pages/history/history_page.dart';
 import '../pages/history_detail/history_detail_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/onboarding/onboarding_page.dart';
+import '../pages/settings/settings_page.dart';
 import '../pages/select_location/select_location_page.dart';
 import '../pages/select_material/select_material_page.dart';
 import '../pages/shell/main_shell_page.dart';
@@ -69,7 +70,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: AppRoutes.settings,
             name: AppRouteNames.settings,
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: _PlaceholderPage(title: '設定'),
+              child: SettingsPage(),
             ),
           ),
         ],
