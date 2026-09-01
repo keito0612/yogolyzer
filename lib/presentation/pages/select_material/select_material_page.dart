@@ -48,7 +48,13 @@ class SelectMaterialPage extends HookConsumerWidget {
         title: const Text('素材を選択'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.home);
+            }
+          },
         ),
       ),
       body: SafeArea(

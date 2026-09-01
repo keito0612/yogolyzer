@@ -32,6 +32,7 @@ class HistoryPage extends HookConsumerWidget {
       appBar: AppBar(
         title: const Text('診断履歴'),
         centerTitle: true,
+        automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: state.when(

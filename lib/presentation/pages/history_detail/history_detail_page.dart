@@ -53,7 +53,13 @@ class HistoryDetailPage extends HookConsumerWidget {
         title: const Text('診断詳細'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.history);
+            }
+          },
         ),
         actions: [
           state.maybeWhen(
@@ -632,7 +638,13 @@ class HistoryDetailPage extends HookConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             TextButton(
-              onPressed: () => context.pop(),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(AppRoutes.history);
+                }
+              },
               child: const Text('戻る'),
             ),
           ],
