@@ -6,6 +6,7 @@ import '../pages/camera/camera_page.dart';
 import '../pages/diagnosing/diagnosing_page.dart';
 import '../pages/diagnosis_result/diagnosis_result_page.dart';
 import '../pages/history/history_page.dart';
+import '../pages/history_detail/history_detail_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/onboarding/onboarding_page.dart';
 import '../pages/select_location/select_location_page.dart';
@@ -141,7 +142,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: AppRouteNames.historyDetail,
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
-          return _PlaceholderPage(title: '履歴詳細: $id');
+          return HistoryDetailPage(historyId: id);
         },
       ),
 
