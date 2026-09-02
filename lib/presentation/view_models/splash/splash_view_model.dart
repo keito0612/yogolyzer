@@ -34,6 +34,8 @@ class SplashViewModel extends Notifier<SplashState> {
     final hasCompletedOnboarding =
         prefs.getBool('hasCompletedOnboarding') ?? false;
 
+    if (!ref.mounted) return;
+
     // 遷移先を決定
     if (hasCompletedOnboarding) {
       state = const SplashState.navigateToHome();

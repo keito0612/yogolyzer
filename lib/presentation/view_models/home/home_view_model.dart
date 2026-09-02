@@ -38,6 +38,8 @@ class HomeViewModel extends Notifier<HomeState> {
     // 仮のデータ
     await Future.delayed(const Duration(milliseconds: 300));
 
+    if (!ref.mounted) return;
+
     state = state.copyWith(
       todayDiagnosisCount: 1,
       isPremium: false,
@@ -73,6 +75,7 @@ class HomeViewModel extends Notifier<HomeState> {
 }
 
 /// HomeViewModelプロバイダー
-final homeViewModelProvider = NotifierProvider<HomeViewModel, HomeState>(
+final homeViewModelProvider =
+    NotifierProvider.autoDispose<HomeViewModel, HomeState>(
   HomeViewModel.new,
 );

@@ -1080,12 +1080,12 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
   }
 }
 
-class $CachedDetergentsTableTable extends CachedDetergentsTable
-    with TableInfo<$CachedDetergentsTableTable, CachedDetergentsTableData> {
+class $DetergentsTableTable extends DetergentsTable
+    with TableInfo<$DetergentsTableTable, DetergentsTableData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $CachedDetergentsTableTable(this.attachedDatabase, [this._alias]);
+  $DetergentsTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -1131,27 +1131,34 @@ class $CachedDetergentsTableTable extends CachedDetergentsTable
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _cachedAtMeta = const VerificationMeta(
-    'cachedAt',
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
   );
   @override
-  late final GeneratedColumn<DateTime> cachedAt = GeneratedColumn<DateTime>(
-    'cached_at',
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
     aliasedName,
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, name, brand, type, data, cachedAt];
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    brand,
+    type,
+    data,
+    createdAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'cached_detergents';
+  static const String $name = 'detergents';
   @override
   VerificationContext validateIntegrity(
-    Insertable<CachedDetergentsTableData> instance, {
+    Insertable<DetergentsTableData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -1193,13 +1200,13 @@ class $CachedDetergentsTableTable extends CachedDetergentsTable
     } else if (isInserting) {
       context.missing(_dataMeta);
     }
-    if (data.containsKey('cached_at')) {
+    if (data.containsKey('created_at')) {
       context.handle(
-        _cachedAtMeta,
-        cachedAt.isAcceptableOrUnknown(data['cached_at']!, _cachedAtMeta),
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     } else if (isInserting) {
-      context.missing(_cachedAtMeta);
+      context.missing(_createdAtMeta);
     }
     return context;
   }
@@ -1207,12 +1214,9 @@ class $CachedDetergentsTableTable extends CachedDetergentsTable
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  CachedDetergentsTableData map(
-    Map<String, dynamic> data, {
-    String? tablePrefix,
-  }) {
+  DetergentsTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CachedDetergentsTableData(
+    return DetergentsTableData(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -1233,21 +1237,21 @@ class $CachedDetergentsTableTable extends CachedDetergentsTable
         DriftSqlType.string,
         data['${effectivePrefix}data'],
       )!,
-      cachedAt: attachedDatabase.typeMapping.read(
+      createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
-        data['${effectivePrefix}cached_at'],
+        data['${effectivePrefix}created_at'],
       )!,
     );
   }
 
   @override
-  $CachedDetergentsTableTable createAlias(String alias) {
-    return $CachedDetergentsTableTable(attachedDatabase, alias);
+  $DetergentsTableTable createAlias(String alias) {
+    return $DetergentsTableTable(attachedDatabase, alias);
   }
 }
 
-class CachedDetergentsTableData extends DataClass
-    implements Insertable<CachedDetergentsTableData> {
+class DetergentsTableData extends DataClass
+    implements Insertable<DetergentsTableData> {
   /// ID（UUID）
   final String id;
 
@@ -1263,15 +1267,15 @@ class CachedDetergentsTableData extends DataClass
   /// 全データ（JSON）
   final String data;
 
-  /// キャッシュ日時
-  final DateTime cachedAt;
-  const CachedDetergentsTableData({
+  /// 作成日時
+  final DateTime createdAt;
+  const DetergentsTableData({
     required this.id,
     required this.name,
     required this.brand,
     required this.type,
     required this.data,
-    required this.cachedAt,
+    required this.createdAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1281,33 +1285,33 @@ class CachedDetergentsTableData extends DataClass
     map['brand'] = Variable<String>(brand);
     map['type'] = Variable<String>(type);
     map['data'] = Variable<String>(data);
-    map['cached_at'] = Variable<DateTime>(cachedAt);
+    map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
 
-  CachedDetergentsTableCompanion toCompanion(bool nullToAbsent) {
-    return CachedDetergentsTableCompanion(
+  DetergentsTableCompanion toCompanion(bool nullToAbsent) {
+    return DetergentsTableCompanion(
       id: Value(id),
       name: Value(name),
       brand: Value(brand),
       type: Value(type),
       data: Value(data),
-      cachedAt: Value(cachedAt),
+      createdAt: Value(createdAt),
     );
   }
 
-  factory CachedDetergentsTableData.fromJson(
+  factory DetergentsTableData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CachedDetergentsTableData(
+    return DetergentsTableData(
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       brand: serializer.fromJson<String>(json['brand']),
       type: serializer.fromJson<String>(json['type']),
       data: serializer.fromJson<String>(json['data']),
-      cachedAt: serializer.fromJson<DateTime>(json['cachedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
   @override
@@ -1319,104 +1323,101 @@ class CachedDetergentsTableData extends DataClass
       'brand': serializer.toJson<String>(brand),
       'type': serializer.toJson<String>(type),
       'data': serializer.toJson<String>(data),
-      'cachedAt': serializer.toJson<DateTime>(cachedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
-  CachedDetergentsTableData copyWith({
+  DetergentsTableData copyWith({
     String? id,
     String? name,
     String? brand,
     String? type,
     String? data,
-    DateTime? cachedAt,
-  }) => CachedDetergentsTableData(
+    DateTime? createdAt,
+  }) => DetergentsTableData(
     id: id ?? this.id,
     name: name ?? this.name,
     brand: brand ?? this.brand,
     type: type ?? this.type,
     data: data ?? this.data,
-    cachedAt: cachedAt ?? this.cachedAt,
+    createdAt: createdAt ?? this.createdAt,
   );
-  CachedDetergentsTableData copyWithCompanion(
-    CachedDetergentsTableCompanion data,
-  ) {
-    return CachedDetergentsTableData(
+  DetergentsTableData copyWithCompanion(DetergentsTableCompanion data) {
+    return DetergentsTableData(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       brand: data.brand.present ? data.brand.value : this.brand,
       type: data.type.present ? data.type.value : this.type,
       data: data.data.present ? data.data.value : this.data,
-      cachedAt: data.cachedAt.present ? data.cachedAt.value : this.cachedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('CachedDetergentsTableData(')
+    return (StringBuffer('DetergentsTableData(')
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('brand: $brand, ')
           ..write('type: $type, ')
           ..write('data: $data, ')
-          ..write('cachedAt: $cachedAt')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, brand, type, data, cachedAt);
+  int get hashCode => Object.hash(id, name, brand, type, data, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is CachedDetergentsTableData &&
+      (other is DetergentsTableData &&
           other.id == this.id &&
           other.name == this.name &&
           other.brand == this.brand &&
           other.type == this.type &&
           other.data == this.data &&
-          other.cachedAt == this.cachedAt);
+          other.createdAt == this.createdAt);
 }
 
-class CachedDetergentsTableCompanion
-    extends UpdateCompanion<CachedDetergentsTableData> {
+class DetergentsTableCompanion extends UpdateCompanion<DetergentsTableData> {
   final Value<String> id;
   final Value<String> name;
   final Value<String> brand;
   final Value<String> type;
   final Value<String> data;
-  final Value<DateTime> cachedAt;
+  final Value<DateTime> createdAt;
   final Value<int> rowid;
-  const CachedDetergentsTableCompanion({
+  const DetergentsTableCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.brand = const Value.absent(),
     this.type = const Value.absent(),
     this.data = const Value.absent(),
-    this.cachedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  CachedDetergentsTableCompanion.insert({
+  DetergentsTableCompanion.insert({
     required String id,
     required String name,
     required String brand,
     required String type,
     required String data,
-    required DateTime cachedAt,
+    required DateTime createdAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
        brand = Value(brand),
        type = Value(type),
        data = Value(data),
-       cachedAt = Value(cachedAt);
-  static Insertable<CachedDetergentsTableData> custom({
+       createdAt = Value(createdAt);
+  static Insertable<DetergentsTableData> custom({
     Expression<String>? id,
     Expression<String>? name,
     Expression<String>? brand,
     Expression<String>? type,
     Expression<String>? data,
-    Expression<DateTime>? cachedAt,
+    Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1425,27 +1426,27 @@ class CachedDetergentsTableCompanion
       if (brand != null) 'brand': brand,
       if (type != null) 'type': type,
       if (data != null) 'data': data,
-      if (cachedAt != null) 'cached_at': cachedAt,
+      if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  CachedDetergentsTableCompanion copyWith({
+  DetergentsTableCompanion copyWith({
     Value<String>? id,
     Value<String>? name,
     Value<String>? brand,
     Value<String>? type,
     Value<String>? data,
-    Value<DateTime>? cachedAt,
+    Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
-    return CachedDetergentsTableCompanion(
+    return DetergentsTableCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       brand: brand ?? this.brand,
       type: type ?? this.type,
       data: data ?? this.data,
-      cachedAt: cachedAt ?? this.cachedAt,
+      createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1468,8 +1469,8 @@ class CachedDetergentsTableCompanion
     if (data.present) {
       map['data'] = Variable<String>(data.value);
     }
-    if (cachedAt.present) {
-      map['cached_at'] = Variable<DateTime>(cachedAt.value);
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -1479,25 +1480,25 @@ class CachedDetergentsTableCompanion
 
   @override
   String toString() {
-    return (StringBuffer('CachedDetergentsTableCompanion(')
+    return (StringBuffer('DetergentsTableCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('brand: $brand, ')
           ..write('type: $type, ')
           ..write('data: $data, ')
-          ..write('cachedAt: $cachedAt, ')
+          ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
 }
 
-class $CachedRecipesTableTable extends CachedRecipesTable
-    with TableInfo<$CachedRecipesTableTable, CachedRecipesTableData> {
+class $RecipesTableTable extends RecipesTable
+    with TableInfo<$RecipesTableTable, RecipesTableData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $CachedRecipesTableTable(this.attachedDatabase, [this._alias]);
+  $RecipesTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -1540,27 +1541,27 @@ class $CachedRecipesTableTable extends CachedRecipesTable
     ),
     defaultValue: const Constant(false),
   );
-  static const VerificationMeta _cachedAtMeta = const VerificationMeta(
-    'cachedAt',
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
   );
   @override
-  late final GeneratedColumn<DateTime> cachedAt = GeneratedColumn<DateTime>(
-    'cached_at',
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
     aliasedName,
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, name, data, isPremium, cachedAt];
+  List<GeneratedColumn> get $columns => [id, name, data, isPremium, createdAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'cached_recipes';
+  static const String $name = 'recipes';
   @override
   VerificationContext validateIntegrity(
-    Insertable<CachedRecipesTableData> instance, {
+    Insertable<RecipesTableData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -1592,13 +1593,13 @@ class $CachedRecipesTableTable extends CachedRecipesTable
         isPremium.isAcceptableOrUnknown(data['is_premium']!, _isPremiumMeta),
       );
     }
-    if (data.containsKey('cached_at')) {
+    if (data.containsKey('created_at')) {
       context.handle(
-        _cachedAtMeta,
-        cachedAt.isAcceptableOrUnknown(data['cached_at']!, _cachedAtMeta),
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     } else if (isInserting) {
-      context.missing(_cachedAtMeta);
+      context.missing(_createdAtMeta);
     }
     return context;
   }
@@ -1606,9 +1607,9 @@ class $CachedRecipesTableTable extends CachedRecipesTable
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  CachedRecipesTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  RecipesTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CachedRecipesTableData(
+    return RecipesTableData(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -1625,21 +1626,21 @@ class $CachedRecipesTableTable extends CachedRecipesTable
         DriftSqlType.bool,
         data['${effectivePrefix}is_premium'],
       )!,
-      cachedAt: attachedDatabase.typeMapping.read(
+      createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
-        data['${effectivePrefix}cached_at'],
+        data['${effectivePrefix}created_at'],
       )!,
     );
   }
 
   @override
-  $CachedRecipesTableTable createAlias(String alias) {
-    return $CachedRecipesTableTable(attachedDatabase, alias);
+  $RecipesTableTable createAlias(String alias) {
+    return $RecipesTableTable(attachedDatabase, alias);
   }
 }
 
-class CachedRecipesTableData extends DataClass
-    implements Insertable<CachedRecipesTableData> {
+class RecipesTableData extends DataClass
+    implements Insertable<RecipesTableData> {
   /// ID（UUID）
   final String id;
 
@@ -1652,14 +1653,14 @@ class CachedRecipesTableData extends DataClass
   /// プレミアム限定か
   final bool isPremium;
 
-  /// キャッシュ日時
-  final DateTime cachedAt;
-  const CachedRecipesTableData({
+  /// 作成日時
+  final DateTime createdAt;
+  const RecipesTableData({
     required this.id,
     required this.name,
     required this.data,
     required this.isPremium,
-    required this.cachedAt,
+    required this.createdAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1668,31 +1669,31 @@ class CachedRecipesTableData extends DataClass
     map['name'] = Variable<String>(name);
     map['data'] = Variable<String>(data);
     map['is_premium'] = Variable<bool>(isPremium);
-    map['cached_at'] = Variable<DateTime>(cachedAt);
+    map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
 
-  CachedRecipesTableCompanion toCompanion(bool nullToAbsent) {
-    return CachedRecipesTableCompanion(
+  RecipesTableCompanion toCompanion(bool nullToAbsent) {
+    return RecipesTableCompanion(
       id: Value(id),
       name: Value(name),
       data: Value(data),
       isPremium: Value(isPremium),
-      cachedAt: Value(cachedAt),
+      createdAt: Value(createdAt),
     );
   }
 
-  factory CachedRecipesTableData.fromJson(
+  factory RecipesTableData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CachedRecipesTableData(
+    return RecipesTableData(
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       data: serializer.fromJson<String>(json['data']),
       isPremium: serializer.fromJson<bool>(json['isPremium']),
-      cachedAt: serializer.fromJson<DateTime>(json['cachedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
   @override
@@ -1703,91 +1704,90 @@ class CachedRecipesTableData extends DataClass
       'name': serializer.toJson<String>(name),
       'data': serializer.toJson<String>(data),
       'isPremium': serializer.toJson<bool>(isPremium),
-      'cachedAt': serializer.toJson<DateTime>(cachedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
-  CachedRecipesTableData copyWith({
+  RecipesTableData copyWith({
     String? id,
     String? name,
     String? data,
     bool? isPremium,
-    DateTime? cachedAt,
-  }) => CachedRecipesTableData(
+    DateTime? createdAt,
+  }) => RecipesTableData(
     id: id ?? this.id,
     name: name ?? this.name,
     data: data ?? this.data,
     isPremium: isPremium ?? this.isPremium,
-    cachedAt: cachedAt ?? this.cachedAt,
+    createdAt: createdAt ?? this.createdAt,
   );
-  CachedRecipesTableData copyWithCompanion(CachedRecipesTableCompanion data) {
-    return CachedRecipesTableData(
+  RecipesTableData copyWithCompanion(RecipesTableCompanion data) {
+    return RecipesTableData(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       data: data.data.present ? data.data.value : this.data,
       isPremium: data.isPremium.present ? data.isPremium.value : this.isPremium,
-      cachedAt: data.cachedAt.present ? data.cachedAt.value : this.cachedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('CachedRecipesTableData(')
+    return (StringBuffer('RecipesTableData(')
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('data: $data, ')
           ..write('isPremium: $isPremium, ')
-          ..write('cachedAt: $cachedAt')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, data, isPremium, cachedAt);
+  int get hashCode => Object.hash(id, name, data, isPremium, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is CachedRecipesTableData &&
+      (other is RecipesTableData &&
           other.id == this.id &&
           other.name == this.name &&
           other.data == this.data &&
           other.isPremium == this.isPremium &&
-          other.cachedAt == this.cachedAt);
+          other.createdAt == this.createdAt);
 }
 
-class CachedRecipesTableCompanion
-    extends UpdateCompanion<CachedRecipesTableData> {
+class RecipesTableCompanion extends UpdateCompanion<RecipesTableData> {
   final Value<String> id;
   final Value<String> name;
   final Value<String> data;
   final Value<bool> isPremium;
-  final Value<DateTime> cachedAt;
+  final Value<DateTime> createdAt;
   final Value<int> rowid;
-  const CachedRecipesTableCompanion({
+  const RecipesTableCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.data = const Value.absent(),
     this.isPremium = const Value.absent(),
-    this.cachedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  CachedRecipesTableCompanion.insert({
+  RecipesTableCompanion.insert({
     required String id,
     required String name,
     required String data,
     this.isPremium = const Value.absent(),
-    required DateTime cachedAt,
+    required DateTime createdAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
        data = Value(data),
-       cachedAt = Value(cachedAt);
-  static Insertable<CachedRecipesTableData> custom({
+       createdAt = Value(createdAt);
+  static Insertable<RecipesTableData> custom({
     Expression<String>? id,
     Expression<String>? name,
     Expression<String>? data,
     Expression<bool>? isPremium,
-    Expression<DateTime>? cachedAt,
+    Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1795,25 +1795,25 @@ class CachedRecipesTableCompanion
       if (name != null) 'name': name,
       if (data != null) 'data': data,
       if (isPremium != null) 'is_premium': isPremium,
-      if (cachedAt != null) 'cached_at': cachedAt,
+      if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  CachedRecipesTableCompanion copyWith({
+  RecipesTableCompanion copyWith({
     Value<String>? id,
     Value<String>? name,
     Value<String>? data,
     Value<bool>? isPremium,
-    Value<DateTime>? cachedAt,
+    Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
-    return CachedRecipesTableCompanion(
+    return RecipesTableCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       data: data ?? this.data,
       isPremium: isPremium ?? this.isPremium,
-      cachedAt: cachedAt ?? this.cachedAt,
+      createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1833,8 +1833,8 @@ class CachedRecipesTableCompanion
     if (isPremium.present) {
       map['is_premium'] = Variable<bool>(isPremium.value);
     }
-    if (cachedAt.present) {
-      map['cached_at'] = Variable<DateTime>(cachedAt.value);
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -1844,12 +1844,12 @@ class CachedRecipesTableCompanion
 
   @override
   String toString() {
-    return (StringBuffer('CachedRecipesTableCompanion(')
+    return (StringBuffer('RecipesTableCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('data: $data, ')
           ..write('isPremium: $isPremium, ')
-          ..write('cachedAt: $cachedAt, ')
+          ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1862,10 +1862,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $DiagnosisHistoryTableTable diagnosisHistoryTable =
       $DiagnosisHistoryTableTable(this);
   late final $SettingsTableTable settingsTable = $SettingsTableTable(this);
-  late final $CachedDetergentsTableTable cachedDetergentsTable =
-      $CachedDetergentsTableTable(this);
-  late final $CachedRecipesTableTable cachedRecipesTable =
-      $CachedRecipesTableTable(this);
+  late final $DetergentsTableTable detergentsTable = $DetergentsTableTable(
+    this,
+  );
+  late final $RecipesTableTable recipesTable = $RecipesTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1873,8 +1873,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     diagnosisHistoryTable,
     settingsTable,
-    cachedDetergentsTable,
-    cachedRecipesTable,
+    detergentsTable,
+    recipesTable,
   ];
 }
 
@@ -2417,30 +2417,30 @@ typedef $$SettingsTableTableProcessedTableManager =
       SettingsTableData,
       PrefetchHooks Function()
     >;
-typedef $$CachedDetergentsTableTableCreateCompanionBuilder =
-    CachedDetergentsTableCompanion Function({
+typedef $$DetergentsTableTableCreateCompanionBuilder =
+    DetergentsTableCompanion Function({
       required String id,
       required String name,
       required String brand,
       required String type,
       required String data,
-      required DateTime cachedAt,
+      required DateTime createdAt,
       Value<int> rowid,
     });
-typedef $$CachedDetergentsTableTableUpdateCompanionBuilder =
-    CachedDetergentsTableCompanion Function({
+typedef $$DetergentsTableTableUpdateCompanionBuilder =
+    DetergentsTableCompanion Function({
       Value<String> id,
       Value<String> name,
       Value<String> brand,
       Value<String> type,
       Value<String> data,
-      Value<DateTime> cachedAt,
+      Value<DateTime> createdAt,
       Value<int> rowid,
     });
 
-class $$CachedDetergentsTableTableFilterComposer
-    extends Composer<_$AppDatabase, $CachedDetergentsTableTable> {
-  $$CachedDetergentsTableTableFilterComposer({
+class $$DetergentsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $DetergentsTableTable> {
+  $$DetergentsTableTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2472,15 +2472,15 @@ class $$CachedDetergentsTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get cachedAt => $composableBuilder(
-    column: $table.cachedAt,
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 }
 
-class $$CachedDetergentsTableTableOrderingComposer
-    extends Composer<_$AppDatabase, $CachedDetergentsTableTable> {
-  $$CachedDetergentsTableTableOrderingComposer({
+class $$DetergentsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $DetergentsTableTable> {
+  $$DetergentsTableTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2512,15 +2512,15 @@ class $$CachedDetergentsTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get cachedAt => $composableBuilder(
-    column: $table.cachedAt,
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
 }
 
-class $$CachedDetergentsTableTableAnnotationComposer
-    extends Composer<_$AppDatabase, $CachedDetergentsTableTable> {
-  $$CachedDetergentsTableTableAnnotationComposer({
+class $$DetergentsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DetergentsTableTable> {
+  $$DetergentsTableTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2542,54 +2542,45 @@ class $$CachedDetergentsTableTableAnnotationComposer
   GeneratedColumn<String> get data =>
       $composableBuilder(column: $table.data, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get cachedAt =>
-      $composableBuilder(column: $table.cachedAt, builder: (column) => column);
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
 
-class $$CachedDetergentsTableTableTableManager
+class $$DetergentsTableTableTableManager
     extends
         RootTableManager<
           _$AppDatabase,
-          $CachedDetergentsTableTable,
-          CachedDetergentsTableData,
-          $$CachedDetergentsTableTableFilterComposer,
-          $$CachedDetergentsTableTableOrderingComposer,
-          $$CachedDetergentsTableTableAnnotationComposer,
-          $$CachedDetergentsTableTableCreateCompanionBuilder,
-          $$CachedDetergentsTableTableUpdateCompanionBuilder,
+          $DetergentsTableTable,
+          DetergentsTableData,
+          $$DetergentsTableTableFilterComposer,
+          $$DetergentsTableTableOrderingComposer,
+          $$DetergentsTableTableAnnotationComposer,
+          $$DetergentsTableTableCreateCompanionBuilder,
+          $$DetergentsTableTableUpdateCompanionBuilder,
           (
-            CachedDetergentsTableData,
+            DetergentsTableData,
             BaseReferences<
               _$AppDatabase,
-              $CachedDetergentsTableTable,
-              CachedDetergentsTableData
+              $DetergentsTableTable,
+              DetergentsTableData
             >,
           ),
-          CachedDetergentsTableData,
+          DetergentsTableData,
           PrefetchHooks Function()
         > {
-  $$CachedDetergentsTableTableTableManager(
+  $$DetergentsTableTableTableManager(
     _$AppDatabase db,
-    $CachedDetergentsTableTable table,
+    $DetergentsTableTable table,
   ) : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$CachedDetergentsTableTableFilterComposer(
-                $db: db,
-                $table: table,
-              ),
+              $$DetergentsTableTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$CachedDetergentsTableTableOrderingComposer(
-                $db: db,
-                $table: table,
-              ),
+              $$DetergentsTableTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$CachedDetergentsTableTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
+              $$DetergentsTableTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
@@ -2597,15 +2588,15 @@ class $$CachedDetergentsTableTableTableManager
                 Value<String> brand = const Value.absent(),
                 Value<String> type = const Value.absent(),
                 Value<String> data = const Value.absent(),
-                Value<DateTime> cachedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => CachedDetergentsTableCompanion(
+              }) => DetergentsTableCompanion(
                 id: id,
                 name: name,
                 brand: brand,
                 type: type,
                 data: data,
-                cachedAt: cachedAt,
+                createdAt: createdAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2615,15 +2606,15 @@ class $$CachedDetergentsTableTableTableManager
                 required String brand,
                 required String type,
                 required String data,
-                required DateTime cachedAt,
+                required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
-              }) => CachedDetergentsTableCompanion.insert(
+              }) => DetergentsTableCompanion.insert(
                 id: id,
                 name: name,
                 brand: brand,
                 type: type,
                 data: data,
-                cachedAt: cachedAt,
+                createdAt: createdAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -2634,49 +2625,49 @@ class $$CachedDetergentsTableTableTableManager
       );
 }
 
-typedef $$CachedDetergentsTableTableProcessedTableManager =
+typedef $$DetergentsTableTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $CachedDetergentsTableTable,
-      CachedDetergentsTableData,
-      $$CachedDetergentsTableTableFilterComposer,
-      $$CachedDetergentsTableTableOrderingComposer,
-      $$CachedDetergentsTableTableAnnotationComposer,
-      $$CachedDetergentsTableTableCreateCompanionBuilder,
-      $$CachedDetergentsTableTableUpdateCompanionBuilder,
+      $DetergentsTableTable,
+      DetergentsTableData,
+      $$DetergentsTableTableFilterComposer,
+      $$DetergentsTableTableOrderingComposer,
+      $$DetergentsTableTableAnnotationComposer,
+      $$DetergentsTableTableCreateCompanionBuilder,
+      $$DetergentsTableTableUpdateCompanionBuilder,
       (
-        CachedDetergentsTableData,
+        DetergentsTableData,
         BaseReferences<
           _$AppDatabase,
-          $CachedDetergentsTableTable,
-          CachedDetergentsTableData
+          $DetergentsTableTable,
+          DetergentsTableData
         >,
       ),
-      CachedDetergentsTableData,
+      DetergentsTableData,
       PrefetchHooks Function()
     >;
-typedef $$CachedRecipesTableTableCreateCompanionBuilder =
-    CachedRecipesTableCompanion Function({
+typedef $$RecipesTableTableCreateCompanionBuilder =
+    RecipesTableCompanion Function({
       required String id,
       required String name,
       required String data,
       Value<bool> isPremium,
-      required DateTime cachedAt,
+      required DateTime createdAt,
       Value<int> rowid,
     });
-typedef $$CachedRecipesTableTableUpdateCompanionBuilder =
-    CachedRecipesTableCompanion Function({
+typedef $$RecipesTableTableUpdateCompanionBuilder =
+    RecipesTableCompanion Function({
       Value<String> id,
       Value<String> name,
       Value<String> data,
       Value<bool> isPremium,
-      Value<DateTime> cachedAt,
+      Value<DateTime> createdAt,
       Value<int> rowid,
     });
 
-class $$CachedRecipesTableTableFilterComposer
-    extends Composer<_$AppDatabase, $CachedRecipesTableTable> {
-  $$CachedRecipesTableTableFilterComposer({
+class $$RecipesTableTableFilterComposer
+    extends Composer<_$AppDatabase, $RecipesTableTable> {
+  $$RecipesTableTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2703,15 +2694,15 @@ class $$CachedRecipesTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get cachedAt => $composableBuilder(
-    column: $table.cachedAt,
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 }
 
-class $$CachedRecipesTableTableOrderingComposer
-    extends Composer<_$AppDatabase, $CachedRecipesTableTable> {
-  $$CachedRecipesTableTableOrderingComposer({
+class $$RecipesTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $RecipesTableTable> {
+  $$RecipesTableTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2738,15 +2729,15 @@ class $$CachedRecipesTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get cachedAt => $composableBuilder(
-    column: $table.cachedAt,
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
 }
 
-class $$CachedRecipesTableTableAnnotationComposer
-    extends Composer<_$AppDatabase, $CachedRecipesTableTable> {
-  $$CachedRecipesTableTableAnnotationComposer({
+class $$RecipesTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RecipesTableTable> {
+  $$RecipesTableTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2765,62 +2756,53 @@ class $$CachedRecipesTableTableAnnotationComposer
   GeneratedColumn<bool> get isPremium =>
       $composableBuilder(column: $table.isPremium, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get cachedAt =>
-      $composableBuilder(column: $table.cachedAt, builder: (column) => column);
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
 
-class $$CachedRecipesTableTableTableManager
+class $$RecipesTableTableTableManager
     extends
         RootTableManager<
           _$AppDatabase,
-          $CachedRecipesTableTable,
-          CachedRecipesTableData,
-          $$CachedRecipesTableTableFilterComposer,
-          $$CachedRecipesTableTableOrderingComposer,
-          $$CachedRecipesTableTableAnnotationComposer,
-          $$CachedRecipesTableTableCreateCompanionBuilder,
-          $$CachedRecipesTableTableUpdateCompanionBuilder,
+          $RecipesTableTable,
+          RecipesTableData,
+          $$RecipesTableTableFilterComposer,
+          $$RecipesTableTableOrderingComposer,
+          $$RecipesTableTableAnnotationComposer,
+          $$RecipesTableTableCreateCompanionBuilder,
+          $$RecipesTableTableUpdateCompanionBuilder,
           (
-            CachedRecipesTableData,
-            BaseReferences<
-              _$AppDatabase,
-              $CachedRecipesTableTable,
-              CachedRecipesTableData
-            >,
+            RecipesTableData,
+            BaseReferences<_$AppDatabase, $RecipesTableTable, RecipesTableData>,
           ),
-          CachedRecipesTableData,
+          RecipesTableData,
           PrefetchHooks Function()
         > {
-  $$CachedRecipesTableTableTableManager(
-    _$AppDatabase db,
-    $CachedRecipesTableTable table,
-  ) : super(
+  $$RecipesTableTableTableManager(_$AppDatabase db, $RecipesTableTable table)
+    : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$CachedRecipesTableTableFilterComposer($db: db, $table: table),
+              $$RecipesTableTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$CachedRecipesTableTableOrderingComposer($db: db, $table: table),
+              $$RecipesTableTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$CachedRecipesTableTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
+              $$RecipesTableTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> data = const Value.absent(),
                 Value<bool> isPremium = const Value.absent(),
-                Value<DateTime> cachedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => CachedRecipesTableCompanion(
+              }) => RecipesTableCompanion(
                 id: id,
                 name: name,
                 data: data,
                 isPremium: isPremium,
-                cachedAt: cachedAt,
+                createdAt: createdAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2829,14 +2811,14 @@ class $$CachedRecipesTableTableTableManager
                 required String name,
                 required String data,
                 Value<bool> isPremium = const Value.absent(),
-                required DateTime cachedAt,
+                required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
-              }) => CachedRecipesTableCompanion.insert(
+              }) => RecipesTableCompanion.insert(
                 id: id,
                 name: name,
                 data: data,
                 isPremium: isPremium,
-                cachedAt: cachedAt,
+                createdAt: createdAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -2847,25 +2829,21 @@ class $$CachedRecipesTableTableTableManager
       );
 }
 
-typedef $$CachedRecipesTableTableProcessedTableManager =
+typedef $$RecipesTableTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $CachedRecipesTableTable,
-      CachedRecipesTableData,
-      $$CachedRecipesTableTableFilterComposer,
-      $$CachedRecipesTableTableOrderingComposer,
-      $$CachedRecipesTableTableAnnotationComposer,
-      $$CachedRecipesTableTableCreateCompanionBuilder,
-      $$CachedRecipesTableTableUpdateCompanionBuilder,
+      $RecipesTableTable,
+      RecipesTableData,
+      $$RecipesTableTableFilterComposer,
+      $$RecipesTableTableOrderingComposer,
+      $$RecipesTableTableAnnotationComposer,
+      $$RecipesTableTableCreateCompanionBuilder,
+      $$RecipesTableTableUpdateCompanionBuilder,
       (
-        CachedRecipesTableData,
-        BaseReferences<
-          _$AppDatabase,
-          $CachedRecipesTableTable,
-          CachedRecipesTableData
-        >,
+        RecipesTableData,
+        BaseReferences<_$AppDatabase, $RecipesTableTable, RecipesTableData>,
       ),
-      CachedRecipesTableData,
+      RecipesTableData,
       PrefetchHooks Function()
     >;
 
@@ -2876,8 +2854,8 @@ class $AppDatabaseManager {
       $$DiagnosisHistoryTableTableTableManager(_db, _db.diagnosisHistoryTable);
   $$SettingsTableTableTableManager get settingsTable =>
       $$SettingsTableTableTableManager(_db, _db.settingsTable);
-  $$CachedDetergentsTableTableTableManager get cachedDetergentsTable =>
-      $$CachedDetergentsTableTableTableManager(_db, _db.cachedDetergentsTable);
-  $$CachedRecipesTableTableTableManager get cachedRecipesTable =>
-      $$CachedRecipesTableTableTableManager(_db, _db.cachedRecipesTable);
+  $$DetergentsTableTableTableManager get detergentsTable =>
+      $$DetergentsTableTableTableManager(_db, _db.detergentsTable);
+  $$RecipesTableTableTableManager get recipesTable =>
+      $$RecipesTableTableTableManager(_db, _db.recipesTable);
 }

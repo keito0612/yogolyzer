@@ -52,11 +52,14 @@ class DiagnosingViewModel extends Notifier<DiagnosingState> {
       // 現在はモック処理（3秒待機）
       await Future.delayed(const Duration(seconds: 3));
 
+      if (!ref.mounted) return;
+
       // モックの診断結果ID
       final diagnosisId = DateTime.now().millisecondsSinceEpoch.toString();
 
       state = DiagnosingState.completed(diagnosisId: diagnosisId);
     } catch (e) {
+      if (!ref.mounted) return;
       state = DiagnosingState.error(message: '診断に失敗しました: $e');
     }
   }
@@ -76,6 +79,6 @@ class DiagnosingViewModel extends Notifier<DiagnosingState> {
 
 /// DiagnosingViewModelのプロバイダー
 final diagnosingViewModelProvider =
-    NotifierProvider<DiagnosingViewModel, DiagnosingState>(
+    NotifierProvider.autoDispose<DiagnosingViewModel, DiagnosingState>(
   DiagnosingViewModel.new,
 );

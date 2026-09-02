@@ -134,6 +134,8 @@ void main() {
 
     setUp(() {
       container = ProviderContainer();
+      // プロバイダーをlistenしてautoDisposeを防ぐ
+      container.listen(settingsViewModelProvider, (prev, next) {});
       viewModel = container.read(settingsViewModelProvider.notifier);
     });
 

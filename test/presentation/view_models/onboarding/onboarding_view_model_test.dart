@@ -11,6 +11,8 @@ void main() {
       // SharedPreferencesのモック設定
       SharedPreferences.setMockInitialValues({});
       container = ProviderContainer();
+      // プロバイダーをlistenしてautoDisposeを防ぐ
+      container.listen(onboardingViewModelProvider, (prev, next) {});
     });
 
     tearDown(() {

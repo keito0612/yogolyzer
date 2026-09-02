@@ -191,6 +191,6 @@ class SelectMaterialViewModel extends Notifier<SelectMaterialState> {
 
 /// SelectMaterialViewModelのプロバイダー
 final selectMaterialViewModelProvider =
-    NotifierProvider<SelectMaterialViewModel, SelectMaterialState>(
+    NotifierProvider.autoDispose<SelectMaterialViewModel, SelectMaterialState>(
   SelectMaterialViewModel.new,
 );

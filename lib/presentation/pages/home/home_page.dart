@@ -92,16 +92,15 @@ class HomePage extends HookConsumerWidget {
         Text(
           '汚れを撮影して',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
         ),
         const SizedBox(height: 8),
         Text(
           '最適な掃除方法を見つけましょう',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-              ),
+          style: Theme.of(context).textTheme.bodyMedium
+              ?.copyWith(color: AppColors.textSecondary),
         ),
       ],
     );
@@ -122,7 +121,6 @@ class HomePage extends HookConsumerWidget {
     HomeState state,
     HomeViewModel viewModel,
   ) {
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -135,16 +133,17 @@ class HomePage extends HookConsumerWidget {
           Icon(
             state.isPremium ? Icons.star : Icons.today,
             size: 16,
-            color: state.isPremium ? AppColors.warning : AppColors.textSecondary,
+            color: state.isPremium
+                ? AppColors.warning
+                : AppColors.textSecondary,
           ),
           const SizedBox(width: 8),
           Text(
             state.isPremium
                 ? 'プレミアム: 無制限'
                 : '今日の診断: ${viewModel.remainingCountText}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: AppColors.textSecondary),
           ),
         ],
       ),

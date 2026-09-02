@@ -77,6 +77,8 @@ class DiagnosisResultViewModel extends Notifier<DiagnosisResultState> {
       // 現在はモック処理
       await Future.delayed(const Duration(milliseconds: 500));
 
+      if (!ref.mounted) return;
+
       // モックの診断結果
       final result = DiagnosisResult(
         id: diagnosisId,
@@ -135,6 +137,7 @@ class DiagnosisResultViewModel extends Notifier<DiagnosisResultState> {
         isSaved: false,
       );
     } catch (e) {
+      if (!ref.mounted) return;
       state = DiagnosisResultState.error(message: '診断結果の読み込みに失敗しました: $e');
     }
   }
@@ -147,6 +150,8 @@ class DiagnosisResultViewModel extends Notifier<DiagnosisResultState> {
     try {
       // TODO: 実際のDB保存処理に置き換える
       await Future.delayed(const Duration(milliseconds: 300));
+
+      if (!ref.mounted) return;
 
       state = currentState.copyWith(isSaved: true);
     } catch (e) {
@@ -171,6 +176,6 @@ class DiagnosisResultViewModel extends Notifier<DiagnosisResultState> {
 
 /// DiagnosisResultViewModelのプロバイダー
 final diagnosisResultViewModelProvider =
-    NotifierProvider<DiagnosisResultViewModel, DiagnosisResultState>(
+    NotifierProvider.autoDispose<DiagnosisResultViewModel, DiagnosisResultState>(
   DiagnosisResultViewModel.new,
 );

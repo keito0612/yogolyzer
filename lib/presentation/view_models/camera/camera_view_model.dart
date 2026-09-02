@@ -49,6 +49,9 @@ class CameraViewModel extends Notifier<CameraState> {
   Future<void> _initializeCamera() async {
     try {
       final cameras = await availableCameras();
+
+      if (!ref.mounted) return;
+
       if (cameras.isEmpty) {
         state = const CameraState.error(message: 'カメラが見つかりません');
         return;
@@ -68,8 +71,11 @@ class CameraViewModel extends Notifier<CameraState> {
 
       await _controller!.initialize();
 
+      if (!ref.mounted) return;
+
       state = CameraState.ready(controller: _controller!);
     } catch (e) {
+      if (!ref.mounted) return;
       state = CameraState.error(message: 'カメラの初期化に失敗しました: $e');
     }
   }
@@ -83,6 +89,9 @@ class CameraViewModel extends Notifier<CameraState> {
     final flashMode = newFlashOn ? FlashMode.torch : FlashMode.off;
 
     await _controller?.setFlashMode(flashMode);
+
+    if (!ref.mounted) return;
+
     state = currentState.copyWith(isFlashOn: newFlashOn);
   }
 
@@ -95,10 +104,14 @@ class CameraViewModel extends Notifier<CameraState> {
       await _controller?.setFlashMode(FlashMode.off);
 
       final image = await _controller?.takePicture();
+
+      if (!ref.mounted) return;
+
       if (image != null) {
         state = CameraState.captured(imagePath: image.path);
       }
     } catch (e) {
+      if (!ref.mounted) return;
       state = CameraState.error(message: '撮影に失敗しました: $e');
     }
   }
@@ -108,10 +121,14 @@ class CameraViewModel extends Notifier<CameraState> {
     try {
       final picker = ImagePicker();
       final image = await picker.pickImage(source: ImageSource.gallery);
+
+      if (!ref.mounted) return;
+
       if (image != null) {
         state = CameraState.captured(imagePath: image.path);
       }
     } catch (e) {
+      if (!ref.mounted) return;
       state = CameraState.error(message: 'ギャラリーからの選択に失敗しました: $e');
     }
   }

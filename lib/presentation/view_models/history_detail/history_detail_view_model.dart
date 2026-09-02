@@ -45,6 +45,8 @@ class HistoryDetailViewModel extends Notifier<HistoryDetailState> {
       // TODO: 実際のDB呼び出しに置き換える
       await Future.delayed(const Duration(milliseconds: 300));
 
+      if (!ref.mounted) return;
+
       // モックデータ
       final result = DiagnosisResult(
         id: historyId,
@@ -100,6 +102,7 @@ class HistoryDetailViewModel extends Notifier<HistoryDetailState> {
 
       state = HistoryDetailState.loaded(result: result);
     } catch (e) {
+      if (!ref.mounted) return;
       state = HistoryDetailState.error(message: '履歴の読み込みに失敗しました: $e');
     }
   }
@@ -115,9 +118,12 @@ class HistoryDetailViewModel extends Notifier<HistoryDetailState> {
       // TODO: 実際のDB削除処理に置き換える
       await Future.delayed(const Duration(milliseconds: 300));
 
+      if (!ref.mounted) return false;
+
       state = const HistoryDetailState.deleted();
       return true;
     } catch (e) {
+      if (!ref.mounted) return false;
       state = HistoryDetailState.loaded(result: currentState.result);
       return false;
     }
@@ -136,6 +142,6 @@ class HistoryDetailViewModel extends Notifier<HistoryDetailState> {
 
 /// HistoryDetailViewModelのプロバイダー
 final historyDetailViewModelProvider =
-    NotifierProvider<HistoryDetailViewModel, HistoryDetailState>(
+    NotifierProvider.autoDispose<HistoryDetailViewModel, HistoryDetailState>(
   HistoryDetailViewModel.new,
 );

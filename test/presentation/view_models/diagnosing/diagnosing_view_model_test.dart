@@ -102,6 +102,8 @@ void main() {
 
     setUp(() {
       container = ProviderContainer();
+      // プロバイダーをlistenしてautoDisposeを防ぐ
+      container.listen(diagnosingViewModelProvider, (prev, next) {});
     });
 
     tearDown(() {

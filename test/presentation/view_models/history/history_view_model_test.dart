@@ -148,6 +148,8 @@ void main() {
 
     setUp(() {
       container = ProviderContainer();
+      // プロバイダーをlistenしてautoDisposeを防ぐ
+      container.listen(historyViewModelProvider, (prev, next) {});
       viewModel = container.read(historyViewModelProvider.notifier);
     });
 
