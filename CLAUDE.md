@@ -261,9 +261,9 @@
                       ↓↑
 ┌─────────────────────────────────────────────────┐
 │              Application層                       │
-│              UseCase / Service                   │
+│                  Service                         │
 │         アプリ固有のビジネスロジック             │
-│    例: DiagnoseStainUseCase, SyncHistoryUseCase │
+│    例: DiagnosisService, AuthService            │
 └─────────────────────────────────────────────────┘
                       ↓↑
 ┌─────────────────────────────────────────────────┐
@@ -285,8 +285,8 @@
 
 | 層 | 責務 | 含まれるもの |
 |----|------|-------------|
-| **Presentation** | UI表示・状態管理 | Page, Widget, Provider (Riverpod),flutter_hooks |
-| **Application** | ユースケース実行 | UseCase |
+| **Presentation** | UI表示・状態管理 | Page, Widget, Provider (Riverpod), flutter_hooks |
+| **Application** | ビジネスロジック実行 | Service |
 | **Domain** | ビジネスルール | Entity, Repository Interface, Value Object |
 | **Infrastructure** | 外部接続 | Repository実装, API Client, drift, 外部SDK |
 
@@ -318,7 +318,7 @@ Presentation層はMVVMパターンで構成する。**ViewにロジックやAPI�
 │  責務:                                           │
 │  - 画面の状態管理 (state)                        │
 │  - ユーザー操作のハンドリング                    │
-│  - UseCase / Repository の呼び出し               │
+│  - Service / Repository の呼び出し               │
 │  - 状態遷移ロジック                              │
 │                                                  │
 │  実装:                                           │
@@ -327,7 +327,7 @@ Presentation層はMVVMパターンで構成する。**ViewにロジックやAPI�
 └─────────────────────────────────────────────────┘
                       ↓↑
 ┌─────────────────────────────────────────────────┐
-│          UseCase / Repository / Service          │
+│              Service / Repository                │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -489,11 +489,11 @@ lib/
 │       └── selection_chip.dart
 │
 ├── application/                # Application層
-│   └── usecases/
-│       ├── diagnose_stain_usecase.dart
-│       ├── sync_history_usecase.dart
-│       ├── get_detergents_usecase.dart
-│       └── authenticate_usecase.dart
+│   └── services/
+│       ├── diagnosis_service.dart
+│       ├── auth_service.dart
+│       ├── detergent_service.dart
+│       └── subscription_service.dart
 │
 ├── domain/                     # Domain層
 │   ├── entities/
@@ -529,7 +529,7 @@ lib/
 
 test/                           # テスト
 ├── unit/                       # ユニットテスト
-│   ├── usecases/
+│   ├── services/
 │   ├── repositories/
 │   └── entities/
 ├── widget/                     # ウィジェットテスト
@@ -547,11 +547,11 @@ test/                           # テスト
 test('診断結果が正しく取得できること', () {
   // Arrange（準備）
   final repository = MockDiagnosisRepository();
-  final usecase = DiagnoseStainUseCase(repository);
+  final service = DiagnosisService(repository);
   when(repository.analyze(any)).thenAnswer((_) async => mockDiagnosis);
 
   // Act（実行）
-  final result = await usecase.execute(image, location, material);
+  final result = await service.diagnose(image, location, material);
 
   // Assert（検証）
   expect(result.stainType, equals('油汚れ'));
@@ -588,11 +588,11 @@ src/
 │       └── rateLimitMiddleware.ts
 │
 ├── application/                # Application層
-│   └── usecases/
-│       ├── AnalyzeStainUseCase.ts
-│       ├── SyncHistoryUseCase.ts
-│       ├── VerifySubscriptionUseCase.ts
-│       └── GetDetergentsUseCase.ts
+│   └── services/
+│       ├── DiagnosisService.ts
+│       ├── AuthService.ts
+│       ├── DetergentService.ts
+│       └── SubscriptionService.ts
 │
 ├── domain/                     # Domain層
 │   ├── entities/
