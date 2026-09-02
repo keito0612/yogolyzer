@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart';
 
-/// 洗剤キャッシュテーブル
-class CachedDetergentsTable extends Table {
+/// 洗剤テーブル
+class DetergentsTable extends Table {
   @override
-  String get tableName => 'cached_detergents';
+  String get tableName => 'detergents';
 
   /// ID（UUID）
   TextColumn get id => text()();
@@ -20,8 +20,8 @@ class CachedDetergentsTable extends Table {
   /// 全データ（JSON）
   TextColumn get data => text()();
 
-  /// キャッシュ日時
-  DateTimeColumn get cachedAt => dateTime()();
+  /// 作成日時
+  DateTimeColumn get createdAt => dateTime()();
 
   @override
   Set<Column> get primaryKey => {id};

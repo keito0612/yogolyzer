@@ -59,6 +59,8 @@ class HistoryViewModel extends Notifier<HistoryState> {
       // TODO: 実際のDB呼び出しに置き換える
       await Future.delayed(const Duration(milliseconds: 300));
 
+      if (!ref.mounted) return;
+
       // モックデータ
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
@@ -107,6 +109,7 @@ class HistoryViewModel extends Notifier<HistoryState> {
       final groups = _groupByDate(mockItems);
       state = HistoryState.loaded(groups: groups);
     } catch (e) {
+      if (!ref.mounted) return;
       state = HistoryState.error(message: '履歴の読み込みに失敗しました: $e');
     }
   }
@@ -166,6 +169,8 @@ class HistoryViewModel extends Notifier<HistoryState> {
       // TODO: 実際のDB削除処理に置き換える
       await Future.delayed(const Duration(milliseconds: 200));
 
+      if (!ref.mounted) return false;
+
       // ローカル状態を更新
       final updatedGroups = currentState.groups.map((group) {
         final updatedItems =
@@ -200,6 +205,6 @@ class HistoryViewModel extends Notifier<HistoryState> {
 
 /// HistoryViewModelのプロバイダー
 final historyViewModelProvider =
-    NotifierProvider<HistoryViewModel, HistoryState>(
+    NotifierProvider.autoDispose<HistoryViewModel, HistoryState>(
   HistoryViewModel.new,
 );

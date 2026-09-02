@@ -108,6 +108,8 @@ void main() {
 
     setUp(() {
       container = ProviderContainer();
+      // プロバイダーをlistenしてautoDisposeを防ぐ
+      container.listen(loginViewModelProvider, (prev, next) {});
       viewModel = container.read(loginViewModelProvider.notifier);
     });
 

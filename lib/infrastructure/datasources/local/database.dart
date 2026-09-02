@@ -15,8 +15,8 @@ part 'database.g.dart';
   tables: [
     DiagnosisHistoryTable,
     SettingsTable,
-    CachedDetergentsTable,
-    CachedRecipesTable,
+    DetergentsTable,
+    RecipesTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {

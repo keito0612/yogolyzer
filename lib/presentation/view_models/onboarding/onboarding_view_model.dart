@@ -55,6 +55,7 @@ class OnboardingViewModel extends Notifier<OnboardingState> {
   Future<void> _completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasCompletedOnboarding', true);
+    if (!ref.mounted) return;
     state = const OnboardingState.completed();
   }
 

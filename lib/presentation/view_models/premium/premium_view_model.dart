@@ -85,12 +85,15 @@ class PremiumViewModel extends Notifier<PremiumState> {
       // TODO: 実際のサブスク状態をRevenueCatから取得
       await Future.delayed(const Duration(milliseconds: 300));
 
+      if (!ref.mounted) return;
+
       state = const PremiumState.loaded(
         selectedPlan: PremiumPlan.monthly,
         plans: _plans,
         isPremium: false,
       );
     } catch (e) {
+      if (!ref.mounted) return;
       state = PremiumState.error(message: 'プレミアム情報の読み込みに失敗しました: $e');
     }
   }
@@ -114,9 +117,12 @@ class PremiumViewModel extends Notifier<PremiumState> {
       // TODO: 実際のRevenueCat購入処理に置き換える
       await Future.delayed(const Duration(milliseconds: 1000));
 
+      if (!ref.mounted) return false;
+
       state = const PremiumState.purchaseSuccess();
       return true;
     } catch (e) {
+      if (!ref.mounted) return false;
       state = PremiumState.error(message: '購入に失敗しました: $e');
       return false;
     }
@@ -133,6 +139,8 @@ class PremiumViewModel extends Notifier<PremiumState> {
       // TODO: 実際のRevenueCat復元処理に置き換える
       await Future.delayed(const Duration(milliseconds: 500));
 
+      if (!ref.mounted) return false;
+
       // モック: 復元成功（プレミアム会員になる）
       state = const PremiumState.loaded(
         selectedPlan: PremiumPlan.monthly,
@@ -141,6 +149,7 @@ class PremiumViewModel extends Notifier<PremiumState> {
       );
       return true;
     } catch (e) {
+      if (!ref.mounted) return false;
       state = PremiumState.error(message: '復元に失敗しました: $e');
       return false;
     }
@@ -161,6 +170,6 @@ class PremiumViewModel extends Notifier<PremiumState> {
 
 /// PremiumViewModelのプロバイダー
 final premiumViewModelProvider =
-    NotifierProvider<PremiumViewModel, PremiumState>(
+    NotifierProvider.autoDispose<PremiumViewModel, PremiumState>(
   PremiumViewModel.new,
 );

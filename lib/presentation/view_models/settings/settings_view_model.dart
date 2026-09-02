@@ -60,6 +60,8 @@ class SettingsViewModel extends Notifier<SettingsState> {
       // TODO: 実際のログイン状態・プレミアム状態をリポジトリから取得
       await Future.delayed(const Duration(milliseconds: 200));
 
+      if (!ref.mounted) return;
+
       state = SettingsState.loaded(
         userInfo: null, // 未ログイン状態
         isPremium: false,
@@ -67,6 +69,7 @@ class SettingsViewModel extends Notifier<SettingsState> {
         appVersion: version,
       );
     } catch (e) {
+      if (!ref.mounted) return;
       state = SettingsState.error(message: '設定の読み込みに失敗しました: $e');
     }
   }
@@ -80,6 +83,8 @@ class SettingsViewModel extends Notifier<SettingsState> {
     try {
       // TODO: 実際のログアウト処理
       await Future.delayed(const Duration(milliseconds: 300));
+
+      if (!ref.mounted) return false;
 
       state = currentState.copyWith(
         userInfo: null,
@@ -101,6 +106,8 @@ class SettingsViewModel extends Notifier<SettingsState> {
       // TODO: 実際の同期設定変更処理
       await Future.delayed(const Duration(milliseconds: 200));
 
+      if (!ref.mounted) return false;
+
       state = currentState.copyWith(
         isSyncEnabled: !currentState.isSyncEnabled,
       );
@@ -120,6 +127,8 @@ class SettingsViewModel extends Notifier<SettingsState> {
       // TODO: 実際のアカウント削除処理
       await Future.delayed(const Duration(milliseconds: 500));
 
+      if (!ref.mounted) return false;
+
       state = currentState.copyWith(
         userInfo: null,
         isPremium: false,
@@ -134,6 +143,6 @@ class SettingsViewModel extends Notifier<SettingsState> {
 
 /// SettingsViewModelのプロバイダー
 final settingsViewModelProvider =
-    NotifierProvider<SettingsViewModel, SettingsState>(
+    NotifierProvider.autoDispose<SettingsViewModel, SettingsState>(
   SettingsViewModel.new,
 );

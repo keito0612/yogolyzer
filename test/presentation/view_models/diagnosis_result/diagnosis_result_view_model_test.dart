@@ -158,6 +158,8 @@ void main() {
 
     setUp(() {
       container = ProviderContainer();
+      // プロバイダーをlistenしてautoDisposeを防ぐ
+      container.listen(diagnosisResultViewModelProvider, (prev, next) {});
       viewModel = container.read(diagnosisResultViewModelProvider.notifier);
     });
 

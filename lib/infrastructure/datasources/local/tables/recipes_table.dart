@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart';
 
-/// レシピキャッシュテーブル
-class CachedRecipesTable extends Table {
+/// レシピテーブル
+class RecipesTable extends Table {
   @override
-  String get tableName => 'cached_recipes';
+  String get tableName => 'recipes';
 
   /// ID（UUID）
   TextColumn get id => text()();
@@ -17,8 +17,8 @@ class CachedRecipesTable extends Table {
   /// プレミアム限定か
   BoolColumn get isPremium => boolean().withDefault(const Constant(false))();
 
-  /// キャッシュ日時
-  DateTimeColumn get cachedAt => dateTime()();
+  /// 作成日時
+  DateTimeColumn get createdAt => dateTime()();
 
   @override
   Set<Column> get primaryKey => {id};

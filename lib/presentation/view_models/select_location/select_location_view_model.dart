@@ -93,6 +93,6 @@ class SelectLocationViewModel extends Notifier<SelectLocationState> {
 
 /// SelectLocationViewModelのプロバイダー
 final selectLocationViewModelProvider =
-    NotifierProvider<SelectLocationViewModel, SelectLocationState>(
+    NotifierProvider.autoDispose<SelectLocationViewModel, SelectLocationState>(
   SelectLocationViewModel.new,
 );

@@ -48,6 +48,8 @@ class LoginViewModel extends Notifier<LoginState> {
       // TODO: 実際のApple Sign-in処理に置き換える
       await Future.delayed(const Duration(milliseconds: 800));
 
+      if (!ref.mounted) return false;
+
       // モック: ログイン成功
       state = const LoginState.success(
         userId: 'apple-user-123',
@@ -56,6 +58,7 @@ class LoginViewModel extends Notifier<LoginState> {
       );
       return true;
     } catch (e) {
+      if (!ref.mounted) return false;
       state = LoginState.error(message: 'Appleログインに失敗しました: $e');
       return false;
     }
@@ -69,6 +72,8 @@ class LoginViewModel extends Notifier<LoginState> {
       // TODO: 実際のGoogle Sign-in処理に置き換える
       await Future.delayed(const Duration(milliseconds: 800));
 
+      if (!ref.mounted) return false;
+
       // モック: ログイン成功
       state = const LoginState.success(
         userId: 'google-user-456',
@@ -77,6 +82,7 @@ class LoginViewModel extends Notifier<LoginState> {
       );
       return true;
     } catch (e) {
+      if (!ref.mounted) return false;
       state = LoginState.error(message: 'Googleログインに失敗しました: $e');
       return false;
     }
@@ -91,6 +97,7 @@ class LoginViewModel extends Notifier<LoginState> {
 }
 
 /// LoginViewModelのプロバイダー
-final loginViewModelProvider = NotifierProvider<LoginViewModel, LoginState>(
+final loginViewModelProvider =
+    NotifierProvider.autoDispose<LoginViewModel, LoginState>(
   LoginViewModel.new,
 );
