@@ -2147,7 +2147,19 @@ class $$DiagnosisHistoryTableTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<
+                    $DiagnosisHistoryTableTable,
+                    DiagnosisHistoryTableData
+                  >(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $DiagnosisHistoryTableTable,
+                    DiagnosisHistoryTableData
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -2393,7 +2405,16 @@ class $$SettingsTableTableTableManager
                 lastDiagnosisDate: lastDiagnosisDate,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$SettingsTableTable, SettingsTableData>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $SettingsTableTable,
+                    SettingsTableData
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -2618,7 +2639,18 @@ class $$DetergentsTableTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$DetergentsTableTable, DetergentsTableData>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $DetergentsTableTable,
+                    DetergentsTableData
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -2822,7 +2854,16 @@ class $$RecipesTableTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$RecipesTableTable, RecipesTableData>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $RecipesTableTable,
+                    RecipesTableData
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),

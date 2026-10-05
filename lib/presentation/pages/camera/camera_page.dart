@@ -17,10 +17,11 @@ class CameraPage extends HookConsumerWidget {
     final viewModel = ref.read(cameraViewModelProvider.notifier);
 
     // 撮影完了時に場所選択画面へ遷移
+    // push()を使用して前の画面をスタックに保持
     ref.listen<CameraState>(cameraViewModelProvider, (previous, next) {
       next.whenOrNull(
         captured: (imagePath) {
-          context.go(AppRoutes.selectLocation, extra: imagePath);
+          context.push(AppRoutes.selectLocation, extra: imagePath);
         },
       );
     });
@@ -31,6 +32,7 @@ class CameraPage extends HookConsumerWidget {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         title: const Text('汚れを撮影'),
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () {

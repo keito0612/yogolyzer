@@ -10,7 +10,7 @@ void main() {
       // Assert
       state.when(
         initializing: () {
-          // 成功
+          expect(state, equals(CameraState.initializing()));
         },
         ready: (controller, isFlashOn) => fail('initializingであるべき'),
         captured: (_) => fail('initializingであるべき'),
@@ -103,9 +103,7 @@ void main() {
       const state = CameraState.initializing();
 
       // Act
-      final result = state.whenOrNull(
-        captured: (path) => 'captured',
-      );
+      final result = state.whenOrNull(captured: (path) => 'captured');
 
       // Assert
       expect(result, isNull);

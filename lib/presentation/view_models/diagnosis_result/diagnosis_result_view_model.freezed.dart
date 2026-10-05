@@ -486,7 +486,7 @@ return $default(_that.name,_that.ingredients,_that.instructions,_that.usage,_tha
 
 
 class _DiyRecipe implements DiyRecipe {
-  const _DiyRecipe({required this.name, required  List<String> ingredients, required  List<String> instructions, required this.usage, required  List<String> cautions}): _ingredients = ingredients,_instructions = instructions,_cautions = cautions;
+  const _DiyRecipe({required this.name, required  List<String> ingredients, required  List<String> instructions, this.usage = '',  List<String> cautions = const []}): _ingredients = ingredients,_instructions = instructions,_cautions = cautions;
   
 
 @override final  String name;
@@ -504,9 +504,9 @@ class _DiyRecipe implements DiyRecipe {
   return EqualUnmodifiableListView(_instructions);
 }
 
-@override final  String usage;
+@override@JsonKey() final  String usage;
  final  List<String> _cautions;
-@override List<String> get cautions {
+@override@JsonKey() List<String> get cautions {
   if (_cautions is EqualUnmodifiableListView) return _cautions;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_cautions);
@@ -956,12 +956,14 @@ extension DiagnosisResultStatePatterns on DiagnosisResultState {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( DiagnosisResultStateLoading value)?  loading,TResult Function( DiagnosisResultStateLoaded value)?  loaded,TResult Function( DiagnosisResultStateError value)?  error,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( DiagnosisResultStateLoading value)?  loading,TResult Function( DiagnosisResultStateLoaded value)?  loaded,TResult Function( DiagnosisResultStateDeleting value)?  deleting,TResult Function( DiagnosisResultStateDeleted value)?  deleted,TResult Function( DiagnosisResultStateError value)?  error,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case DiagnosisResultStateLoading() when loading != null:
 return loading(_that);case DiagnosisResultStateLoaded() when loaded != null:
-return loaded(_that);case DiagnosisResultStateError() when error != null:
+return loaded(_that);case DiagnosisResultStateDeleting() when deleting != null:
+return deleting(_that);case DiagnosisResultStateDeleted() when deleted != null:
+return deleted(_that);case DiagnosisResultStateError() when error != null:
 return error(_that);case _:
   return orElse();
 
@@ -980,12 +982,14 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( DiagnosisResultStateLoading value)  loading,required TResult Function( DiagnosisResultStateLoaded value)  loaded,required TResult Function( DiagnosisResultStateError value)  error,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( DiagnosisResultStateLoading value)  loading,required TResult Function( DiagnosisResultStateLoaded value)  loaded,required TResult Function( DiagnosisResultStateDeleting value)  deleting,required TResult Function( DiagnosisResultStateDeleted value)  deleted,required TResult Function( DiagnosisResultStateError value)  error,}){
 final _that = this;
 switch (_that) {
 case DiagnosisResultStateLoading():
 return loading(_that);case DiagnosisResultStateLoaded():
-return loaded(_that);case DiagnosisResultStateError():
+return loaded(_that);case DiagnosisResultStateDeleting():
+return deleting(_that);case DiagnosisResultStateDeleted():
+return deleted(_that);case DiagnosisResultStateError():
 return error(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -1000,12 +1004,14 @@ return error(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( DiagnosisResultStateLoading value)?  loading,TResult? Function( DiagnosisResultStateLoaded value)?  loaded,TResult? Function( DiagnosisResultStateError value)?  error,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( DiagnosisResultStateLoading value)?  loading,TResult? Function( DiagnosisResultStateLoaded value)?  loaded,TResult? Function( DiagnosisResultStateDeleting value)?  deleting,TResult? Function( DiagnosisResultStateDeleted value)?  deleted,TResult? Function( DiagnosisResultStateError value)?  error,}){
 final _that = this;
 switch (_that) {
 case DiagnosisResultStateLoading() when loading != null:
 return loading(_that);case DiagnosisResultStateLoaded() when loaded != null:
-return loaded(_that);case DiagnosisResultStateError() when error != null:
+return loaded(_that);case DiagnosisResultStateDeleting() when deleting != null:
+return deleting(_that);case DiagnosisResultStateDeleted() when deleted != null:
+return deleted(_that);case DiagnosisResultStateError() when error != null:
 return error(_that);case _:
   return null;
 
@@ -1023,11 +1029,13 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loading,TResult Function( DiagnosisResult result,  bool isSaved)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loading,TResult Function( DiagnosisResult result,  bool isSaved)?  loaded,TResult Function( DiagnosisResult result)?  deleting,TResult Function()?  deleted,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case DiagnosisResultStateLoading() when loading != null:
 return loading();case DiagnosisResultStateLoaded() when loaded != null:
-return loaded(_that.result,_that.isSaved);case DiagnosisResultStateError() when error != null:
+return loaded(_that.result,_that.isSaved);case DiagnosisResultStateDeleting() when deleting != null:
+return deleting(_that.result);case DiagnosisResultStateDeleted() when deleted != null:
+return deleted();case DiagnosisResultStateError() when error != null:
 return error(_that.message);case _:
   return orElse();
 
@@ -1046,11 +1054,13 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loading,required TResult Function( DiagnosisResult result,  bool isSaved)  loaded,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loading,required TResult Function( DiagnosisResult result,  bool isSaved)  loaded,required TResult Function( DiagnosisResult result)  deleting,required TResult Function()  deleted,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case DiagnosisResultStateLoading():
 return loading();case DiagnosisResultStateLoaded():
-return loaded(_that.result,_that.isSaved);case DiagnosisResultStateError():
+return loaded(_that.result,_that.isSaved);case DiagnosisResultStateDeleting():
+return deleting(_that.result);case DiagnosisResultStateDeleted():
+return deleted();case DiagnosisResultStateError():
 return error(_that.message);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -1065,11 +1075,13 @@ return error(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loading,TResult? Function( DiagnosisResult result,  bool isSaved)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loading,TResult? Function( DiagnosisResult result,  bool isSaved)?  loaded,TResult? Function( DiagnosisResult result)?  deleting,TResult? Function()?  deleted,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case DiagnosisResultStateLoading() when loading != null:
 return loading();case DiagnosisResultStateLoaded() when loaded != null:
-return loaded(_that.result,_that.isSaved);case DiagnosisResultStateError() when error != null:
+return loaded(_that.result,_that.isSaved);case DiagnosisResultStateDeleting() when deleting != null:
+return deleting(_that.result);case DiagnosisResultStateDeleted() when deleted != null:
+return deleted();case DiagnosisResultStateError() when error != null:
 return error(_that.message);case _:
   return null;
 
@@ -1188,6 +1200,115 @@ $DiagnosisResultCopyWith<$Res> get result {
   });
 }
 }
+
+/// @nodoc
+
+
+class DiagnosisResultStateDeleting implements DiagnosisResultState {
+  const DiagnosisResultStateDeleting({required this.result});
+  
+
+ final  DiagnosisResult result;
+
+/// Create a copy of DiagnosisResultState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DiagnosisResultStateDeletingCopyWith<DiagnosisResultStateDeleting> get copyWith => _$DiagnosisResultStateDeletingCopyWithImpl<DiagnosisResultStateDeleting>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DiagnosisResultStateDeleting&&(identical(other.result, result) || other.result == result));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,result);
+}
+
+@override
+String toString() {
+    return 'DiagnosisResultState.deleting(result: $result)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DiagnosisResultStateDeletingCopyWith<$Res> implements $DiagnosisResultStateCopyWith<$Res> {
+  factory $DiagnosisResultStateDeletingCopyWith(DiagnosisResultStateDeleting value, $Res Function(DiagnosisResultStateDeleting) _then) = _$DiagnosisResultStateDeletingCopyWithImpl;
+@useResult
+$Res call({
+ DiagnosisResult result
+});
+
+
+$DiagnosisResultCopyWith<$Res> get result;
+
+}
+/// @nodoc
+class _$DiagnosisResultStateDeletingCopyWithImpl<$Res>
+    implements $DiagnosisResultStateDeletingCopyWith<$Res> {
+  _$DiagnosisResultStateDeletingCopyWithImpl(this._self, this._then);
+
+  final DiagnosisResultStateDeleting _self;
+  final $Res Function(DiagnosisResultStateDeleting) _then;
+
+/// Create a copy of DiagnosisResultState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? result = null,}) {
+  return _then(DiagnosisResultStateDeleting(
+result: null == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
+as DiagnosisResult,
+  ));
+}
+
+/// Create a copy of DiagnosisResultState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$DiagnosisResultCopyWith<$Res> get result {
+  
+  return $DiagnosisResultCopyWith<$Res>(_self.result, (value) {
+    return _then(_self.copyWith(result: value));
+  });
+}
+}
+
+/// @nodoc
+
+
+class DiagnosisResultStateDeleted implements DiagnosisResultState {
+  const DiagnosisResultStateDeleted();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DiagnosisResultStateDeleted);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'DiagnosisResultState.deleted()';
+}
+
+
+}
+
+
+
 
 /// @nodoc
 

@@ -1,6 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../application/services/diagnosis_service.dart';
+import '../../../infrastructure/datasources/remote/api_exception.dart';
+import '../../../infrastructure/providers/service_providers.dart';
+import '../../../shared/utils/validators.dart';
+
 part 'diagnosing_view_model.freezed.dart';
 
 /// 診断中画面の状態
@@ -21,13 +26,23 @@ sealed class DiagnosingState with _$DiagnosingState {
   /// エラー
   const factory DiagnosingState.error({
     required String message,
+    @Default(true) bool canRetry,
+    @Default(false) bool isRateLimitExceeded,
   }) = DiagnosingStateError;
 }
 
 /// 診断中画面のViewModel
 class DiagnosingViewModel extends Notifier<DiagnosingState> {
+  late final DiagnosisService _diagnosisService;
+
+  // リトライ用に保持
+  String _lastImagePath = '';
+  String _lastLocation = '';
+  String _lastMaterial = '';
+
   @override
   DiagnosingState build() {
+    _diagnosisService = ref.watch(diagnosisServiceProvider);
     return const DiagnosingState.diagnosing(
       imagePath: '',
       location: '',
@@ -41,6 +56,26 @@ class DiagnosingViewModel extends Notifier<DiagnosingState> {
     required String location,
     required String material,
   }) async {
+    // リトライ用に保持
+    _lastImagePath = imagePath;
+    _lastLocation = location;
+    _lastMaterial = material;
+
+    // バリデーション
+    final validation = await Validators.validateDiagnosisRequest(
+      imagePath: imagePath,
+      location: location,
+      material: material,
+    );
+
+    if (!validation.isValid) {
+      state = DiagnosingState.error(
+        message: validation.errorMessage ?? '入力内容に問題があります',
+        canRetry: false,
+      );
+      return;
+    }
+
     state = DiagnosingState.diagnosing(
       imagePath: imagePath,
       location: location,
@@ -48,32 +83,49 @@ class DiagnosingViewModel extends Notifier<DiagnosingState> {
     );
 
     try {
-      // TODO: 実際のAPI呼び出しに置き換える
-      // 現在はモック処理（3秒待機）
-      await Future.delayed(const Duration(seconds: 3));
+      final diagnosis = await _diagnosisService.analyze(
+        imagePath: imagePath,
+        location: location,
+        material: material,
+      );
 
       if (!ref.mounted) return;
 
-      // モックの診断結果ID
-      final diagnosisId = DateTime.now().millisecondsSinceEpoch.toString();
-
-      state = DiagnosingState.completed(diagnosisId: diagnosisId);
+      state = DiagnosingState.completed(diagnosisId: diagnosis.id);
+    } on RateLimitException catch (e) {
+      // レート制限: リトライ不可、プレミアムモーダル表示
+      if (!ref.mounted) return;
+      state = DiagnosingState.error(
+        message: e.message,
+        canRetry: false,
+        isRateLimitExceeded: true,
+      );
+    } on ApiException catch (e) {
+      // その他のAPI例外: メッセージ表示、リトライ可能
+      if (!ref.mounted) return;
+      state = DiagnosingState.error(
+        message: e.message,
+        canRetry: true,
+      );
     } catch (e) {
+      // 予期しないエラー
       if (!ref.mounted) return;
-      state = DiagnosingState.error(message: '診断に失敗しました: $e');
+      state = DiagnosingState.error(
+        message: '診断に失敗しました: $e',
+        canRetry: true,
+      );
     }
   }
 
   /// リトライ
   Future<void> retry() async {
-    final currentState = state;
-    if (currentState is DiagnosingStateDiagnosing) {
-      await startDiagnosis(
-        imagePath: currentState.imagePath,
-        location: currentState.location,
-        material: currentState.material,
-      );
-    }
+    if (_lastImagePath.isEmpty) return;
+
+    await startDiagnosis(
+      imagePath: _lastImagePath,
+      location: _lastLocation,
+      material: _lastMaterial,
+    );
   }
 }
 

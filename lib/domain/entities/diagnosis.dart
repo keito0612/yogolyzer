@@ -46,6 +46,8 @@ abstract class DiyRecipe with _$DiyRecipe {
     required String name,
     required List<String> ingredients,
     required List<String> instructions,
+    @Default('') String usage,
+    @Default([]) List<String> cautions,
   }) = _DiyRecipe;
 
   factory DiyRecipe.fromJson(Map<String, dynamic> json) =>

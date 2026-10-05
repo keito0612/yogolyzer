@@ -1,6 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../application/services/auth_service.dart';
+import '../../../infrastructure/datasources/remote/api_exception.dart';
+import '../../../infrastructure/providers/service_providers.dart';
+
 part 'login_view_model.freezed.dart';
 
 /// 認証プロバイダーの種類
@@ -35,8 +39,11 @@ sealed class LoginState with _$LoginState {
 
 /// ログイン画面のViewModel
 class LoginViewModel extends Notifier<LoginState> {
+  late final AuthService _authService;
+
   @override
   LoginState build() {
+    _authService = ref.watch(authServiceProvider);
     return const LoginState.idle();
   }
 
@@ -45,18 +52,20 @@ class LoginViewModel extends Notifier<LoginState> {
     state = const LoginState.loading(provider: AuthProvider.apple);
 
     try {
-      // TODO: 実際のApple Sign-in処理に置き換える
-      await Future.delayed(const Duration(milliseconds: 800));
+      final user = await _authService.signInWithApple();
 
       if (!ref.mounted) return false;
 
-      // モック: ログイン成功
-      state = const LoginState.success(
-        userId: 'apple-user-123',
-        email: 'user@icloud.com',
+      state = LoginState.success(
+        userId: user.id,
+        email: user.email,
         provider: AuthProvider.apple,
       );
       return true;
+    } on ApiException catch (e) {
+      if (!ref.mounted) return false;
+      state = LoginState.error(message: e.message);
+      return false;
     } catch (e) {
       if (!ref.mounted) return false;
       state = LoginState.error(message: 'Appleログインに失敗しました: $e');
@@ -69,18 +78,20 @@ class LoginViewModel extends Notifier<LoginState> {
     state = const LoginState.loading(provider: AuthProvider.google);
 
     try {
-      // TODO: 実際のGoogle Sign-in処理に置き換える
-      await Future.delayed(const Duration(milliseconds: 800));
+      final user = await _authService.signInWithGoogle();
 
       if (!ref.mounted) return false;
 
-      // モック: ログイン成功
-      state = const LoginState.success(
-        userId: 'google-user-456',
-        email: 'user@gmail.com',
+      state = LoginState.success(
+        userId: user.id,
+        email: user.email,
         provider: AuthProvider.google,
       );
       return true;
+    } on ApiException catch (e) {
+      if (!ref.mounted) return false;
+      state = LoginState.error(message: e.message);
+      return false;
     } catch (e) {
       if (!ref.mounted) return false;
       state = LoginState.error(message: 'Googleログインに失敗しました: $e');
@@ -93,6 +104,11 @@ class LoginViewModel extends Notifier<LoginState> {
     if (state is LoginStateError) {
       state = const LoginState.idle();
     }
+  }
+
+  /// Apple Sign-inが利用可能か
+  Future<bool> isAppleSignInAvailable() async {
+    return _authService.isAppleSignInAvailable();
   }
 }
 

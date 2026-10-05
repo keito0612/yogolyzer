@@ -50,6 +50,7 @@ class PremiumPage extends HookConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('プレミアム'),
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () {

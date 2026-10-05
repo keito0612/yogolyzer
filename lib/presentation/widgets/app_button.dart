@@ -97,6 +97,9 @@ class AppButton extends StatelessWidget {
   }
 
   Widget _buildChild() {
+    // ボタンのforegroundColorを継承するため、色を除いたスタイルを使用
+    final textStyle = size.textStyle.copyWith(color: null);
+
     if (isLoading) {
       return SizedBox(
         width: 20,
@@ -117,12 +120,12 @@ class AppButton extends StatelessWidget {
         children: [
           Icon(icon, size: size.iconSize),
           SizedBox(width: size.iconSpacing),
-          Text(label, style: size.textStyle),
+          Text(label, style: textStyle),
         ],
       );
     }
 
-    return Text(label, style: size.textStyle);
+    return Text(label, style: textStyle);
   }
 }
 

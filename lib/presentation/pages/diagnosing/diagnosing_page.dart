@@ -59,7 +59,13 @@ class DiagnosingPage extends HookConsumerWidget {
               imagePath,
             ),
             completed: (_) => _buildDiagnosing(context, imagePath), // 遷移中
-            error: (message) => _buildError(context, ref, message),
+            error: (message, canRetry, isRateLimitExceeded) => _buildError(
+              context,
+              ref,
+              message,
+              canRetry,
+              isRateLimitExceeded: isRateLimitExceeded,
+            ),
           ),
         ),
       ),
@@ -135,32 +141,41 @@ class DiagnosingPage extends HookConsumerWidget {
     );
   }
 
-  Widget _buildError(BuildContext context, WidgetRef ref, String message) {
+  Widget _buildError(
+    BuildContext context,
+    WidgetRef ref,
+    String message,
+    bool canRetry, {
+    bool isRateLimitExceeded = false,
+  }) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // エラーアイコン
-            const Icon(
-              Icons.error_outline,
+            // アイコン
+            Icon(
+              isRateLimitExceeded ? Icons.workspace_premium : Icons.error_outline,
               size: 64,
-              color: AppColors.error,
+              color: isRateLimitExceeded ? AppColors.warning : AppColors.error,
             ),
 
             const SizedBox(height: AppSpacing.lg),
 
-            // エラーメッセージ
+            // タイトル
             Text(
-              '診断に失敗しました',
+              isRateLimitExceeded ? '本日の診断回数上限に達しました' : '診断に失敗しました',
               style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
             ),
 
             const SizedBox(height: AppSpacing.sm),
 
             Text(
-              message,
+              isRateLimitExceeded
+                  ? 'プレミアムプランに登録すると\n無制限で診断できます'
+                  : message,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -169,19 +184,25 @@ class DiagnosingPage extends HookConsumerWidget {
 
             const SizedBox(height: AppSpacing.xl),
 
-            // リトライボタン
-            AppButton(
-              label: '再試行',
-              onPressed: () {
-                ref.read(diagnosingViewModelProvider.notifier).startDiagnosis(
-                      imagePath: imagePath,
-                      location: location,
-                      material: material,
-                    );
-              },
-            ),
+            // プレミアムボタン（レート制限の場合）
+            if (isRateLimitExceeded) ...[
+              AppButton(
+                label: 'プレミアムプランを見る',
+                onPressed: () => context.push(AppRoutes.premium),
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
 
-            const SizedBox(height: AppSpacing.md),
+            // リトライボタン（リトライ可能な場合のみ表示）
+            if (canRetry)
+              AppButton(
+                label: '再試行',
+                onPressed: () {
+                  ref.read(diagnosingViewModelProvider.notifier).retry();
+                },
+              ),
+
+            if (!isRateLimitExceeded) const SizedBox(height: AppSpacing.md),
 
             // ホームに戻る
             TextButton(

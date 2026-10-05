@@ -51,6 +51,7 @@ class LoginPage extends HookConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('ログイン'),
+        centerTitle: true,
       ),
       body: SafeArea(
         child: Padding(

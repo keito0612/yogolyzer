@@ -123,12 +123,12 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String imagePath,  String location,  String material)?  diagnosing,TResult Function( String diagnosisId)?  completed,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String imagePath,  String location,  String material)?  diagnosing,TResult Function( String diagnosisId)?  completed,TResult Function( String message,  bool canRetry,  bool isRateLimitExceeded)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case DiagnosingStateDiagnosing() when diagnosing != null:
 return diagnosing(_that.imagePath,_that.location,_that.material);case DiagnosingStateCompleted() when completed != null:
 return completed(_that.diagnosisId);case DiagnosingStateError() when error != null:
-return error(_that.message);case _:
+return error(_that.message,_that.canRetry,_that.isRateLimitExceeded);case _:
   return orElse();
 
 }
@@ -146,12 +146,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String imagePath,  String location,  String material)  diagnosing,required TResult Function( String diagnosisId)  completed,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String imagePath,  String location,  String material)  diagnosing,required TResult Function( String diagnosisId)  completed,required TResult Function( String message,  bool canRetry,  bool isRateLimitExceeded)  error,}) {final _that = this;
 switch (_that) {
 case DiagnosingStateDiagnosing():
 return diagnosing(_that.imagePath,_that.location,_that.material);case DiagnosingStateCompleted():
 return completed(_that.diagnosisId);case DiagnosingStateError():
-return error(_that.message);}
+return error(_that.message,_that.canRetry,_that.isRateLimitExceeded);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -165,12 +165,12 @@ return error(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String imagePath,  String location,  String material)?  diagnosing,TResult? Function( String diagnosisId)?  completed,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String imagePath,  String location,  String material)?  diagnosing,TResult? Function( String diagnosisId)?  completed,TResult? Function( String message,  bool canRetry,  bool isRateLimitExceeded)?  error,}) {final _that = this;
 switch (_that) {
 case DiagnosingStateDiagnosing() when diagnosing != null:
 return diagnosing(_that.imagePath,_that.location,_that.material);case DiagnosingStateCompleted() when completed != null:
 return completed(_that.diagnosisId);case DiagnosingStateError() when error != null:
-return error(_that.message);case _:
+return error(_that.message,_that.canRetry,_that.isRateLimitExceeded);case _:
   return null;
 
 }
@@ -322,10 +322,12 @@ as String,
 
 
 class DiagnosingStateError implements DiagnosingState {
-  const DiagnosingStateError({required this.message});
+  const DiagnosingStateError({required this.message, this.canRetry = true, this.isRateLimitExceeded = false});
   
 
  final  String message;
+@JsonKey() final  bool canRetry;
+@JsonKey() final  bool isRateLimitExceeded;
 
 /// Create a copy of DiagnosingState
 /// with the given fields replaced by the non-null parameter values.
@@ -337,18 +339,18 @@ $DiagnosingStateErrorCopyWith<DiagnosingStateError> get copyWith => _$Diagnosing
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is DiagnosingStateError&&(identical(other.message, message) || other.message == message));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DiagnosingStateError&&(identical(other.message, message) || other.message == message)&&(identical(other.canRetry, canRetry) || other.canRetry == canRetry)&&(identical(other.isRateLimitExceeded, isRateLimitExceeded) || other.isRateLimitExceeded == isRateLimitExceeded));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,message);
+    return Object.hash(runtimeType,message,canRetry,isRateLimitExceeded);
 }
 
 @override
 String toString() {
-    return 'DiagnosingState.error(message: $message)';
+    return 'DiagnosingState.error(message: $message, canRetry: $canRetry, isRateLimitExceeded: $isRateLimitExceeded)';
 }
 
 
@@ -359,7 +361,7 @@ abstract mixin class $DiagnosingStateErrorCopyWith<$Res> implements $DiagnosingS
   factory $DiagnosingStateErrorCopyWith(DiagnosingStateError value, $Res Function(DiagnosingStateError) _then) = _$DiagnosingStateErrorCopyWithImpl;
 @useResult
 $Res call({
- String message
+ String message, bool canRetry, bool isRateLimitExceeded
 });
 
 
@@ -376,10 +378,12 @@ class _$DiagnosingStateErrorCopyWithImpl<$Res>
 
 /// Create a copy of DiagnosingState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? message = null,Object? canRetry = null,Object? isRateLimitExceeded = null,}) {
   return _then(DiagnosingStateError(
 message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
-as String,
+as String,canRetry: null == canRetry ? _self.canRetry : canRetry // ignore: cast_nullable_to_non_nullable
+as bool,isRateLimitExceeded: null == isRateLimitExceeded ? _self.isRateLimitExceeded : isRateLimitExceeded // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

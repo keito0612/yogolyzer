@@ -46,6 +46,7 @@ class SelectMaterialPage extends HookConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('素材を選択'),
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {

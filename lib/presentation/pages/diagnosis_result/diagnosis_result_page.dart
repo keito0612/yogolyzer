@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yogolyzer/domain/entities/recipe.dart';
 
 import '../../../shared/constants/app_colors.dart';
 import '../../../shared/constants/app_spacing.dart';
@@ -13,13 +14,16 @@ import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 
 /// 診断結果画面
+/// 新規診断結果と履歴詳細の両方を表示する統合画面
 class DiagnosisResultPage extends HookConsumerWidget {
   const DiagnosisResultPage({
     super.key,
     required this.diagnosisId,
+    this.isFromHistory = false,
   });
 
   final String diagnosisId;
+  final bool isFromHistory;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,51 +38,115 @@ class DiagnosisResultPage extends HookConsumerWidget {
       return null;
     }, [diagnosisId]);
 
+    // 削除完了時に履歴一覧画面へ戻る
+    ref.listen<DiagnosisResultState>(diagnosisResultViewModelProvider, (
+      previous,
+      next,
+    ) {
+      next.whenOrNull(
+        deleted: () {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('履歴を削除しました')));
+          context.go(AppRoutes.history);
+        },
+      );
+    });
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('診断結果'),
+        title: Text(isFromHistory ? '診断詳細' : '診断結果'),
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
             } else {
-              context.go(AppRoutes.home);
+              context.go(isFromHistory ? AppRoutes.history : AppRoutes.home);
             }
           },
         ),
         actions: [
-          state.maybeWhen(
-            loaded: (result, isSaved) => TextButton(
-              onPressed: isSaved
-                  ? null
-                  : () async {
-                      await viewModel.saveResult();
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('履歴に保存しました')),
-                        );
-                      }
-                    },
-              child: Text(
-                isSaved ? '保存済み' : '保存',
-                style: TextStyle(
-                  color: isSaved ? AppColors.textDisabled : AppColors.primary,
+          if (isFromHistory)
+            // 履歴モード: 削除ボタン
+            state.maybeWhen(
+              loaded: (result, isSaved) => IconButton(
+                icon: const Icon(Icons.delete_outline),
+                onPressed: () => _showDeleteConfirmDialog(context, viewModel),
+              ),
+              deleting: (result) => const Padding(
+                padding: EdgeInsets.all(12),
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 ),
               ),
+              orElse: () => const SizedBox.shrink(),
+            )
+          else
+            // 新規診断モード: 保存ボタン
+            state.maybeWhen(
+              loaded: (result, isSaved) => TextButton(
+                onPressed: isSaved
+                    ? null
+                    : () async {
+                        await viewModel.saveResult();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('履歴に保存しました')),
+                          );
+                        }
+                      },
+                child: Text(
+                  isSaved ? '保存済み' : '保存',
+                  style: TextStyle(
+                    color: isSaved ? AppColors.textDisabled : AppColors.primary,
+                  ),
+                ),
+              ),
+              orElse: () => const SizedBox.shrink(),
             ),
-            orElse: () => const SizedBox.shrink(),
-          ),
         ],
       ),
       body: SafeArea(
         child: state.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           loaded: (result, isSaved) => _buildContent(context, result, ref),
+          deleting: (result) => _buildContent(context, result, ref),
+          deleted: () => const Center(child: CircularProgressIndicator()),
           error: (message) => _buildError(context, message, viewModel),
         ),
       ),
     );
+  }
+
+  Future<void> _showDeleteConfirmDialog(
+    BuildContext context,
+    DiagnosisResultViewModel viewModel,
+  ) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('履歴を削除'),
+        content: const Text('この診断履歴を削除してもよろしいですか？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('キャンセル'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('削除'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      await viewModel.deleteResult();
+    }
   }
 
   Widget _buildContent(
@@ -98,6 +166,12 @@ class DiagnosisResultPage extends HookConsumerWidget {
 
           // 場所・素材表示
           _buildLocationMaterial(context, result),
+
+          // 履歴モードの場合は診断日時を表示
+          if (isFromHistory) ...[
+            const SizedBox(height: AppSpacing.sm),
+            _buildDateTime(context, result.createdAt),
+          ],
 
           const SizedBox(height: AppSpacing.lg),
 
@@ -123,7 +197,8 @@ class DiagnosisResultPage extends HookConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
 
           // 注意セクション
-          if (result.cautions.isNotEmpty) _buildCautionsSection(context, result),
+          if (result.cautions.isNotEmpty)
+            _buildCautionsSection(context, result),
 
           const SizedBox(height: AppSpacing.xl),
         ],
@@ -154,11 +229,7 @@ class DiagnosisResultPage extends HookConsumerWidget {
     return Container(
       color: AppColors.background,
       child: const Center(
-        child: Icon(
-          Icons.image,
-          size: 64,
-          color: AppColors.textDisabled,
-        ),
+        child: Icon(Icons.image, size: 64, color: AppColors.textDisabled),
       ),
     );
   }
@@ -166,25 +237,35 @@ class DiagnosisResultPage extends HookConsumerWidget {
   Widget _buildLocationMaterial(BuildContext context, DiagnosisResult result) {
     return Row(
       children: [
-        Icon(
-          Icons.location_on,
-          size: 16,
-          color: AppColors.textSecondary,
-        ),
+        Icon(Icons.location_on, size: 16, color: AppColors.textSecondary),
         const SizedBox(width: 4),
         Text(
           '${result.location} / ${result.material}',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-              ),
+          style: Theme.of(context).textTheme.bodyMedium
+              ?.copyWith(color: AppColors.textSecondary),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateTime(BuildContext context, DateTime dateTime) {
+    return Row(
+      children: [
+        Icon(Icons.access_time, size: 16, color: AppColors.textSecondary),
+        const SizedBox(width: 4),
+        Text(
+          DiagnosisResultViewModel.formatDateTime(dateTime),
+          style: Theme.of(context).textTheme.bodySmall
+              ?.copyWith(color: AppColors.textSecondary),
         ),
       ],
     );
   }
 
   Widget _buildDiagnosisSection(BuildContext context, DiagnosisResult result) {
-    final confidenceLevel =
-        DiagnosisResultViewModel.getConfidenceLevel(result.confidence);
+    final confidenceLevel = DiagnosisResultViewModel.getConfidenceLevel(
+      result.confidence,
+    );
     final confidenceColor = _getConfidenceColor(confidenceLevel);
 
     return AppCard(
@@ -194,17 +275,12 @@ class DiagnosisResultPage extends HookConsumerWidget {
           // セクションヘッダー
           Row(
             children: [
-              Icon(
-                Icons.search,
-                size: 20,
-                color: AppColors.primary,
-              ),
+              Icon(Icons.search, size: 20, color: AppColors.primary),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 '診断結果',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(context).textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -214,9 +290,8 @@ class DiagnosisResultPage extends HookConsumerWidget {
           // 汚れの種類
           Text(
             result.stainType,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
 
           const SizedBox(height: AppSpacing.md),
@@ -226,9 +301,8 @@ class DiagnosisResultPage extends HookConsumerWidget {
             children: [
               Text(
                 '信頼度: ${(result.confidence * 100).toInt()}%',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(color: AppColors.textSecondary),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
@@ -270,17 +344,12 @@ class DiagnosisResultPage extends HookConsumerWidget {
           // セクションヘッダー
           Row(
             children: [
-              Icon(
-                Icons.cleaning_services,
-                size: 20,
-                color: AppColors.primary,
-              ),
+              Icon(Icons.cleaning_services, size: 20, color: AppColors.primary),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'おすすめ洗剤',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(context).textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -292,9 +361,7 @@ class DiagnosisResultPage extends HookConsumerWidget {
             final index = entry.key;
             final detergent = entry.value;
             return Padding(
-              padding: EdgeInsets.only(
-                top: index == 0 ? 0 : AppSpacing.sm,
-              ),
+              padding: EdgeInsets.only(top: index == 0 ? 0 : AppSpacing.sm),
               child: _buildDetergentItem(context, detergent),
             );
           }),
@@ -320,11 +387,7 @@ class DiagnosisResultPage extends HookConsumerWidget {
               color: AppColors.primaryLight,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              Icons.local_drink,
-              size: 20,
-              color: AppColors.primary,
-            ),
+            child: Icon(Icons.local_drink, size: 20, color: AppColors.primary),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -333,23 +396,20 @@ class DiagnosisResultPage extends HookConsumerWidget {
               children: [
                 Text(
                   detergent.name,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
+                  style: Theme.of(context).textTheme.bodyLarge
+                      ?.copyWith(fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   detergent.brand,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   detergent.reason,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -367,17 +427,12 @@ class DiagnosisResultPage extends HookConsumerWidget {
           // セクションヘッダー
           Row(
             children: [
-              Icon(
-                Icons.science,
-                size: 20,
-                color: AppColors.primary,
-              ),
+              Icon(Icons.science, size: 20, color: AppColors.primary),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 '自作レシピ',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(context).textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -399,23 +454,17 @@ class DiagnosisResultPage extends HookConsumerWidget {
                   Expanded(
                     child: Text(
                       recipe.name,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
+                      style: Theme.of(context).textTheme.bodyLarge
+                          ?.copyWith(fontWeight: FontWeight.w500),
                     ),
                   ),
                   Text(
                     '詳しく見る',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.primary,
-                        ),
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: AppColors.primary),
                   ),
                   const SizedBox(width: 4),
-                  Icon(
-                    Icons.chevron_right,
-                    size: 20,
-                    color: AppColors.primary,
-                  ),
+                  Icon(Icons.chevron_right, size: 20, color: AppColors.primary),
                 ],
               ),
             ),
@@ -447,17 +496,12 @@ class DiagnosisResultPage extends HookConsumerWidget {
           // セクションヘッダー
           Row(
             children: [
-              Icon(
-                Icons.checklist,
-                size: 20,
-                color: AppColors.primary,
-              ),
+              Icon(Icons.checklist, size: 20, color: AppColors.primary),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 '掃除手順',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(context).textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -469,9 +513,7 @@ class DiagnosisResultPage extends HookConsumerWidget {
             final index = entry.key;
             final step = entry.value;
             return Padding(
-              padding: EdgeInsets.only(
-                top: index == 0 ? 0 : AppSpacing.sm,
-              ),
+              padding: EdgeInsets.only(top: index == 0 ? 0 : AppSpacing.sm),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -521,18 +563,14 @@ class DiagnosisResultPage extends HookConsumerWidget {
           // セクションヘッダー
           Row(
             children: [
-              Icon(
-                Icons.warning_amber,
-                size: 20,
-                color: AppColors.error,
-              ),
+              Icon(Icons.warning_amber, size: 20, color: AppColors.error),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 '注意事項',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.error,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.error,
+                ),
               ),
             ],
           ),
@@ -550,9 +588,8 @@ class DiagnosisResultPage extends HookConsumerWidget {
                   Expanded(
                     child: Text(
                       caution,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textPrimary,
-                          ),
+                      style: Theme.of(context).textTheme.bodySmall
+                          ?.copyWith(color: AppColors.textPrimary),
                     ),
                   ),
                 ],
@@ -575,22 +612,14 @@ class DiagnosisResultPage extends HookConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: AppColors.error,
-            ),
+            const Icon(Icons.error_outline, size: 64, color: AppColors.error),
             const SizedBox(height: AppSpacing.lg),
-            Text(
-              '読み込みに失敗しました',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('読み込みに失敗しました', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: AppSpacing.sm),
             Text(
               message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -629,26 +658,11 @@ class _RecipeBottomSheet extends StatelessWidget {
           child: ListView(
             controller: scrollController,
             children: [
-              // ハンドル
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.border,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: AppSpacing.lg),
-
               // タイトル
               Text(
                 recipe.name,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: AppSpacing.xl),
@@ -674,64 +688,9 @@ class _RecipeBottomSheet extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.lg),
 
-              // 使い方
-              Text(
-                '使い方',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                recipe.usage,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-
-              const SizedBox(height: AppSpacing.lg),
-
+              _buildRecipeUsage(recipe, context),
               // 注意事項
-              if (recipe.cautions.isNotEmpty) ...[
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.warning_amber,
-                            size: 16,
-                            color: AppColors.warning,
-                          ),
-                          const SizedBox(width: AppSpacing.xs),
-                          Text(
-                            '注意',
-                            style:
-                                Theme.of(context).textTheme.titleSmall?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.warning,
-                                    ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      ...recipe.cautions.map((caution) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Text(
-                            '• $caution',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
-                ),
-              ],
+              _bulidCautions(context),
 
               const SizedBox(height: AppSpacing.xl),
             ],
@@ -757,9 +716,8 @@ class _RecipeBottomSheet extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             Text(
               title,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(context).textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -777,5 +735,83 @@ class _RecipeBottomSheet extends StatelessWidget {
         }),
       ],
     );
+  }
+
+  Widget _buildRecipeUsage(DiyRecipe recipe, BuildContext context) {
+    return recipe.usage.isNotEmpty
+        ? Column(
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.checklist, size: 20, color: AppColors.primary),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    '掃除手順',
+                    style: Theme.of(context).textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  recipe.usage,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
+          )
+        : SizedBox();
+  }
+
+  Widget _bulidCautions(BuildContext context) {
+    return recipe.cautions.isNotEmpty
+        ? Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.warning_amber,
+                      size: 16,
+                      color: AppColors.warning,
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      '注意',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.warning,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                ...recipe.cautions.map((caution) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      '• $caution',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  );
+                }),
+              ],
+            ),
+          )
+        : SizedBox();
   }
 }

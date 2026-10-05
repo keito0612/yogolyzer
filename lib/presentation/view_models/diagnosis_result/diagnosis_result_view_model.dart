@@ -1,6 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../application/services/diagnosis_service.dart';
+import '../../../domain/entities/diagnosis.dart' as domain;
+import '../../../infrastructure/providers/service_providers.dart';
+
 part 'diagnosis_result_view_model.freezed.dart';
 
 /// 洗剤情報
@@ -20,8 +24,8 @@ abstract class DiyRecipe with _$DiyRecipe {
     required String name,
     required List<String> ingredients,
     required List<String> instructions,
-    required String usage,
-    required List<String> cautions,
+    @Default('') String usage,
+    @Default([]) List<String> cautions,
   }) = _DiyRecipe;
 }
 
@@ -55,6 +59,14 @@ sealed class DiagnosisResultState with _$DiagnosisResultState {
     required bool isSaved,
   }) = DiagnosisResultStateLoaded;
 
+  /// 削除中
+  const factory DiagnosisResultState.deleting({
+    required DiagnosisResult result,
+  }) = DiagnosisResultStateDeleting;
+
+  /// 削除完了
+  const factory DiagnosisResultState.deleted() = DiagnosisResultStateDeleted;
+
   /// エラー
   const factory DiagnosisResultState.error({
     required String message,
@@ -63,8 +75,12 @@ sealed class DiagnosisResultState with _$DiagnosisResultState {
 
 /// 診断結果画面のViewModel
 class DiagnosisResultViewModel extends Notifier<DiagnosisResultState> {
+  late final DiagnosisService _diagnosisService;
+  domain.Diagnosis? _currentDiagnosis;
+
   @override
   DiagnosisResultState build() {
+    _diagnosisService = ref.watch(diagnosisServiceProvider);
     return const DiagnosisResultState.loading();
   }
 
@@ -73,68 +89,25 @@ class DiagnosisResultViewModel extends Notifier<DiagnosisResultState> {
     state = const DiagnosisResultState.loading();
 
     try {
-      // TODO: 実際のAPI/DB呼び出しに置き換える
-      // 現在はモック処理
-      await Future.delayed(const Duration(milliseconds: 500));
+      final diagnosis = await _diagnosisService.getDiagnosis(diagnosisId);
 
       if (!ref.mounted) return;
 
-      // モックの診断結果
-      final result = DiagnosisResult(
-        id: diagnosisId,
-        imagePath: '', // 実際は保存された画像パス
-        location: 'キッチン',
-        material: 'タイル',
-        stainType: '油汚れ + カビ',
-        confidence: 0.85,
-        recommendedDetergents: const [
-          Detergent(
-            name: 'カビキラー',
-            brand: 'ジョンソン',
-            reason: 'カビ除去に効果的',
-          ),
-          Detergent(
-            name: 'マジックリン',
-            brand: '花王',
-            reason: '油汚れをしっかり落とす',
-          ),
-        ],
-        diyRecipe: const DiyRecipe(
-          name: '重曹スプレー',
-          ingredients: [
-            '重曹 大さじ2',
-            '水 200ml',
-            '食器用洗剤 数滴',
-          ],
-          instructions: [
-            '重曹を水に溶かす',
-            '食器用洗剤を加えて混ぜる',
-            'スプレーボトルに入れる',
-          ],
-          usage: '汚れに吹きかけて5分放置後、柔らかい布で拭き取る',
-          cautions: [
-            '使用前に目立たない場所でテストしてください',
-            '手荒れが気になる場合はゴム手袋を使用してください',
-          ],
-        ),
-        cleaningSteps: const [
-          'まずカビキラーでカビを除去',
-          '5分放置後、水で洗い流す',
-          'マジックリンを油汚れに吹きかける',
-          '3分放置後、スポンジで擦る',
-          '水拭きで仕上げる',
-        ],
-        cautions: const [
-          '換気をしっかり行ってください',
-          '塗装壁は色落ちの可能性があります',
-          '目立たない場所でテストしてから使用してください',
-        ],
-        createdAt: DateTime.now(),
-      );
+      if (diagnosis == null) {
+        state = const DiagnosisResultState.error(
+          message: '診断結果が見つかりません',
+        );
+        return;
+      }
+
+      _currentDiagnosis = diagnosis;
+
+      // ドメインエンティティをViewModelのモデルに変換
+      final result = _mapToResult(diagnosis);
 
       state = DiagnosisResultState.loaded(
         result: result,
-        isSaved: false,
+        isSaved: diagnosis.isSynced,
       );
     } catch (e) {
       if (!ref.mounted) return;
@@ -142,20 +115,86 @@ class DiagnosisResultViewModel extends Notifier<DiagnosisResultState> {
     }
   }
 
+  /// ドメインエンティティをViewModelのモデルに変換
+  DiagnosisResult _mapToResult(domain.Diagnosis diagnosis) {
+    return DiagnosisResult(
+      id: diagnosis.id,
+      imagePath: diagnosis.imagePath,
+      location: diagnosis.location,
+      material: diagnosis.material,
+      stainType: diagnosis.stainType,
+      confidence: diagnosis.confidence,
+      recommendedDetergents: diagnosis.recommendedDetergents
+          .map((d) => Detergent(
+                name: d.name,
+                brand: d.brand,
+                reason: d.reason,
+              ))
+          .toList(),
+      diyRecipe: diagnosis.diyRecipe != null
+          ? DiyRecipe(
+              name: diagnosis.diyRecipe!.name,
+              ingredients: diagnosis.diyRecipe!.ingredients,
+              instructions: diagnosis.diyRecipe!.instructions,
+              usage: diagnosis.diyRecipe!.usage,
+              cautions: diagnosis.diyRecipe!.cautions,
+            )
+          : null,
+      cleaningSteps: diagnosis.cleaningSteps,
+      cautions: diagnosis.cautions,
+      createdAt: diagnosis.createdAt,
+    );
+  }
+
   /// 診断結果を保存
   Future<void> saveResult() async {
     final currentState = state;
     if (currentState is! DiagnosisResultStateLoaded) return;
+    if (_currentDiagnosis == null) return;
 
     try {
-      // TODO: 実際のDB保存処理に置き換える
-      await Future.delayed(const Duration(milliseconds: 300));
+      // 既に保存済み（isSyncedがtrue）の場合は何もしない
+      if (_currentDiagnosis!.isSynced) {
+        state = currentState.copyWith(isSaved: true);
+        return;
+      }
+
+      // TODO: クラウド同期が必要な場合は実装
+      // 現時点ではローカル保存は診断時に完了しているため、
+      // isSavedをtrueにするだけ
 
       if (!ref.mounted) return;
 
       state = currentState.copyWith(isSaved: true);
     } catch (e) {
       // エラー時は何もしない（UIでスナックバー表示など）
+    }
+  }
+
+  /// 診断結果を削除
+  Future<bool> deleteResult() async {
+    final currentState = state;
+    DiagnosisResult? result;
+    if (currentState is DiagnosisResultStateLoaded) {
+      result = currentState.result;
+    } else {
+      return false;
+    }
+    if (_currentDiagnosis == null) return false;
+
+    state = DiagnosisResultState.deleting(result: result);
+
+    try {
+      await _diagnosisService.deleteDiagnosis(_currentDiagnosis!.id);
+
+      if (!ref.mounted) return false;
+
+      state = const DiagnosisResultState.deleted();
+      return true;
+    } catch (e) {
+      if (!ref.mounted) return false;
+      state = DiagnosisResultState.loaded(result: result, isSaved: true);
+      return false;
     }
   }
 
@@ -171,6 +210,16 @@ class DiagnosisResultViewModel extends Notifier<DiagnosisResultState> {
     } else {
       return 'error';
     }
+  }
+
+  /// 日時をフォーマット
+  static String formatDateTime(DateTime dateTime) {
+    final year = dateTime.year;
+    final month = dateTime.month.toString().padLeft(2, '0');
+    final day = dateTime.day.toString().padLeft(2, '0');
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    return '$year/$month/$day $hour:$minute';
   }
 }
 

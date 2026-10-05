@@ -1,6 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../application/services/subscription_service.dart';
+import '../../../infrastructure/datasources/remote/api_exception.dart';
+import '../../../infrastructure/providers/service_providers.dart';
+
 part 'premium_view_model.freezed.dart';
 
 /// プレミアムプランの種類
@@ -55,6 +59,8 @@ sealed class PremiumState with _$PremiumState {
 
 /// プレミアム画面のViewModel
 class PremiumViewModel extends Notifier<PremiumState> {
+  late final SubscriptionService _subscriptionService;
+
   /// プラン情報（固定）
   static const List<PlanInfo> _plans = [
     PlanInfo(
@@ -74,6 +80,7 @@ class PremiumViewModel extends Notifier<PremiumState> {
 
   @override
   PremiumState build() {
+    _subscriptionService = ref.watch(subscriptionServiceProvider);
     return const PremiumState.loading();
   }
 
@@ -82,16 +89,18 @@ class PremiumViewModel extends Notifier<PremiumState> {
     state = const PremiumState.loading();
 
     try {
-      // TODO: 実際のサブスク状態をRevenueCatから取得
-      await Future.delayed(const Duration(milliseconds: 300));
+      final isPremium = await _subscriptionService.isPremium();
 
       if (!ref.mounted) return;
 
-      state = const PremiumState.loaded(
+      state = PremiumState.loaded(
         selectedPlan: PremiumPlan.monthly,
         plans: _plans,
-        isPremium: false,
+        isPremium: isPremium,
       );
+    } on ApiException catch (e) {
+      if (!ref.mounted) return;
+      state = PremiumState.error(message: e.message);
     } catch (e) {
       if (!ref.mounted) return;
       state = PremiumState.error(message: 'プレミアム情報の読み込みに失敗しました: $e');
@@ -114,13 +123,27 @@ class PremiumViewModel extends Notifier<PremiumState> {
     state = PremiumState.purchasing(plan: currentState.selectedPlan);
 
     try {
-      // TODO: 実際のRevenueCat購入処理に置き換える
-      await Future.delayed(const Duration(milliseconds: 1000));
+      final isYearly = currentState.selectedPlan == PremiumPlan.yearly;
+      final success = await _subscriptionService.purchase(isYearly: isYearly);
 
       if (!ref.mounted) return false;
 
-      state = const PremiumState.purchaseSuccess();
-      return true;
+      if (success) {
+        state = const PremiumState.purchaseSuccess();
+        return true;
+      } else {
+        // ユーザーキャンセル
+        state = PremiumState.loaded(
+          selectedPlan: currentState.selectedPlan,
+          plans: _plans,
+          isPremium: false,
+        );
+        return false;
+      }
+    } on ApiException catch (e) {
+      if (!ref.mounted) return false;
+      state = PremiumState.error(message: e.message);
+      return false;
     } catch (e) {
       if (!ref.mounted) return false;
       state = PremiumState.error(message: '購入に失敗しました: $e');
@@ -136,18 +159,20 @@ class PremiumViewModel extends Notifier<PremiumState> {
     state = const PremiumState.loading();
 
     try {
-      // TODO: 実際のRevenueCat復元処理に置き換える
-      await Future.delayed(const Duration(milliseconds: 500));
+      final success = await _subscriptionService.restore();
 
       if (!ref.mounted) return false;
 
-      // モック: 復元成功（プレミアム会員になる）
-      state = const PremiumState.loaded(
+      state = PremiumState.loaded(
         selectedPlan: PremiumPlan.monthly,
         plans: _plans,
-        isPremium: true,
+        isPremium: success,
       );
-      return true;
+      return success;
+    } on ApiException catch (e) {
+      if (!ref.mounted) return false;
+      state = PremiumState.error(message: e.message);
+      return false;
     } catch (e) {
       if (!ref.mounted) return false;
       state = PremiumState.error(message: '復元に失敗しました: $e');

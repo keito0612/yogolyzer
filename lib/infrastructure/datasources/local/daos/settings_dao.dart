@@ -25,36 +25,44 @@ class SettingsDao extends DatabaseAccessor<AppDatabase>
   }
 
   /// デバイスIDを更新
-  Future<void> updateDeviceId(String deviceId) {
-    return saveSettings(SettingsTableCompanion(
-      deviceId: Value(deviceId),
-    ));
+  Future<void> updateDeviceId(String deviceId) async {
+    await (update(settingsTable)..where((t) => t.id.equals(1))).write(
+      SettingsTableCompanion(
+        deviceId: Value(deviceId),
+      ),
+    );
   }
 
   /// ログイン状態を更新
   Future<void> updateLoginState({
     required bool isLoggedIn,
     String? userId,
-  }) {
-    return saveSettings(SettingsTableCompanion(
-      isLoggedIn: Value(isLoggedIn),
-      userId: Value(userId),
-    ));
+  }) async {
+    await (update(settingsTable)..where((t) => t.id.equals(1))).write(
+      SettingsTableCompanion(
+        isLoggedIn: Value(isLoggedIn),
+        userId: Value(userId),
+      ),
+    );
   }
 
   /// プレミアム状態を更新
-  Future<void> updatePremiumState(bool isPremium) {
-    return saveSettings(SettingsTableCompanion(
-      isPremium: Value(isPremium),
-    ));
+  Future<void> updatePremiumState(bool isPremium) async {
+    await (update(settingsTable)..where((t) => t.id.equals(1))).write(
+      SettingsTableCompanion(
+        isPremium: Value(isPremium),
+      ),
+    );
   }
 
   /// 診断回数を更新
-  Future<void> updateDiagnosisCount(int count, DateTime date) {
-    return saveSettings(SettingsTableCompanion(
-      dailyDiagnosisCount: Value(count),
-      lastDiagnosisDate: Value(date),
-    ));
+  Future<void> updateDiagnosisCount(int count, DateTime date) async {
+    await (update(settingsTable)..where((t) => t.id.equals(1))).write(
+      SettingsTableCompanion(
+        dailyDiagnosisCount: Value(count),
+        lastDiagnosisDate: Value(date),
+      ),
+    );
   }
 
   /// 診断回数をインクリメント

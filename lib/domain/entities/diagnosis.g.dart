@@ -71,6 +71,10 @@ _DiyRecipe _$DiyRecipeFromJson(Map<String, dynamic> json) => _DiyRecipe(
   instructions: (json['instructions'] as List<dynamic>)
       .map((e) => e as String)
       .toList(),
+  usage: json['usage'] as String? ?? '',
+  cautions:
+      (json['cautions'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$DiyRecipeToJson(_DiyRecipe instance) =>
@@ -78,4 +82,6 @@ Map<String, dynamic> _$DiyRecipeToJson(_DiyRecipe instance) =>
       'name': instance.name,
       'ingredients': instance.ingredients,
       'instructions': instance.instructions,
+      'usage': instance.usage,
+      'cautions': instance.cautions,
     };

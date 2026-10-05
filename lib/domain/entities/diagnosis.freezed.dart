@@ -640,7 +640,7 @@ as String,
 /// @nodoc
 mixin _$DiyRecipe {
 
- String get name; List<String> get ingredients; List<String> get instructions;
+ String get name; List<String> get ingredients; List<String> get instructions; String get usage; List<String> get cautions;
 /// Create a copy of DiyRecipe
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -654,20 +654,20 @@ $DiyRecipeCopyWith<DiyRecipe> get copyWith => _$DiyRecipeCopyWithImpl<DiyRecipe>
 @override
 bool operator ==(Object other) {
   final _this = this as DiyRecipe;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DiyRecipe&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.ingredients, _this.ingredients)&&const DeepCollectionEquality().equals(other.instructions, _this.instructions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DiyRecipe&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.ingredients, _this.ingredients)&&const DeepCollectionEquality().equals(other.instructions, _this.instructions)&&(identical(other.usage, _this.usage) || other.usage == _this.usage)&&const DeepCollectionEquality().equals(other.cautions, _this.cautions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as DiyRecipe;
-  return Object.hash(runtimeType,_this.name,const DeepCollectionEquality().hash(_this.ingredients),const DeepCollectionEquality().hash(_this.instructions));
+  return Object.hash(runtimeType,_this.name,const DeepCollectionEquality().hash(_this.ingredients),const DeepCollectionEquality().hash(_this.instructions),_this.usage,const DeepCollectionEquality().hash(_this.cautions));
 }
 
 @override
 String toString() {
   final _this = this as DiyRecipe;
-  return 'DiyRecipe(name: ${_this.name}, ingredients: ${_this.ingredients}, instructions: ${_this.instructions})';
+  return 'DiyRecipe(name: ${_this.name}, ingredients: ${_this.ingredients}, instructions: ${_this.instructions}, usage: ${_this.usage}, cautions: ${_this.cautions})';
 }
 
 
@@ -678,7 +678,7 @@ abstract mixin class $DiyRecipeCopyWith<$Res>  {
   factory $DiyRecipeCopyWith(DiyRecipe value, $Res Function(DiyRecipe) _then) = _$DiyRecipeCopyWithImpl;
 @useResult
 $Res call({
- String name, List<String> ingredients, List<String> instructions
+ String name, List<String> ingredients, List<String> instructions, String usage, List<String> cautions
 });
 
 
@@ -695,11 +695,13 @@ class _$DiyRecipeCopyWithImpl<$Res>
 
 /// Create a copy of DiyRecipe
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? ingredients = null,Object? instructions = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? ingredients = null,Object? instructions = null,Object? usage = null,Object? cautions = null,}) {
   return _then(DiyRecipe(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,ingredients: null == ingredients ? _self.ingredients : ingredients // ignore: cast_nullable_to_non_nullable
 as List<String>,instructions: null == instructions ? _self.instructions : instructions // ignore: cast_nullable_to_non_nullable
+as List<String>,usage: null == usage ? _self.usage : usage // ignore: cast_nullable_to_non_nullable
+as String,cautions: null == cautions ? _self.cautions : cautions // ignore: cast_nullable_to_non_nullable
 as List<String>,
   ));
 }
@@ -785,10 +787,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  List<String> ingredients,  List<String> instructions)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  List<String> ingredients,  List<String> instructions,  String usage,  List<String> cautions)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DiyRecipe() when $default != null:
-return $default(_that.name,_that.ingredients,_that.instructions);case _:
+return $default(_that.name,_that.ingredients,_that.instructions,_that.usage,_that.cautions);case _:
   return orElse();
 
 }
@@ -806,10 +808,10 @@ return $default(_that.name,_that.ingredients,_that.instructions);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  List<String> ingredients,  List<String> instructions)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  List<String> ingredients,  List<String> instructions,  String usage,  List<String> cautions)  $default,) {final _that = this;
 switch (_that) {
 case _DiyRecipe():
-return $default(_that.name,_that.ingredients,_that.instructions);case _:
+return $default(_that.name,_that.ingredients,_that.instructions,_that.usage,_that.cautions);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -826,10 +828,10 @@ return $default(_that.name,_that.ingredients,_that.instructions);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  List<String> ingredients,  List<String> instructions)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  List<String> ingredients,  List<String> instructions,  String usage,  List<String> cautions)?  $default,) {final _that = this;
 switch (_that) {
 case _DiyRecipe() when $default != null:
-return $default(_that.name,_that.ingredients,_that.instructions);case _:
+return $default(_that.name,_that.ingredients,_that.instructions,_that.usage,_that.cautions);case _:
   return null;
 
 }
@@ -841,7 +843,7 @@ return $default(_that.name,_that.ingredients,_that.instructions);case _:
 @JsonSerializable()
 
 class _DiyRecipe implements DiyRecipe {
-  const _DiyRecipe({required this.name, required  List<String> ingredients, required  List<String> instructions}): _ingredients = ingredients,_instructions = instructions;
+  const _DiyRecipe({required this.name, required  List<String> ingredients, required  List<String> instructions, this.usage = '',  List<String> cautions = const []}): _ingredients = ingredients,_instructions = instructions,_cautions = cautions;
   factory _DiyRecipe.fromJson(Map<String, dynamic> json) => _$DiyRecipeFromJson(json);
 
 @override final  String name;
@@ -859,6 +861,14 @@ class _DiyRecipe implements DiyRecipe {
   return EqualUnmodifiableListView(_instructions);
 }
 
+@override@JsonKey() final  String usage;
+ final  List<String> _cautions;
+@override@JsonKey() List<String> get cautions {
+  if (_cautions is EqualUnmodifiableListView) return _cautions;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_cautions);
+}
+
 
 /// Create a copy of DiyRecipe
 /// with the given fields replaced by the non-null parameter values.
@@ -873,18 +883,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DiyRecipe&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.ingredients, _ingredients)&&const DeepCollectionEquality().equals(other.instructions, _instructions));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DiyRecipe&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.ingredients, _ingredients)&&const DeepCollectionEquality().equals(other.instructions, _instructions)&&(identical(other.usage, usage) || other.usage == usage)&&const DeepCollectionEquality().equals(other.cautions, _cautions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,name,const DeepCollectionEquality().hash(_ingredients),const DeepCollectionEquality().hash(_instructions));
+    return Object.hash(runtimeType,name,const DeepCollectionEquality().hash(_ingredients),const DeepCollectionEquality().hash(_instructions),usage,const DeepCollectionEquality().hash(_cautions));
 }
 
 @override
 String toString() {
-    return 'DiyRecipe(name: $name, ingredients: $ingredients, instructions: $instructions)';
+    return 'DiyRecipe(name: $name, ingredients: $ingredients, instructions: $instructions, usage: $usage, cautions: $cautions)';
 }
 
 
@@ -895,7 +905,7 @@ abstract mixin class _$DiyRecipeCopyWith<$Res> implements $DiyRecipeCopyWith<$Re
   factory _$DiyRecipeCopyWith(_DiyRecipe value, $Res Function(_DiyRecipe) _then) = __$DiyRecipeCopyWithImpl;
 @override @useResult
 $Res call({
- String name, List<String> ingredients, List<String> instructions
+ String name, List<String> ingredients, List<String> instructions, String usage, List<String> cautions
 });
 
 
@@ -912,11 +922,13 @@ class __$DiyRecipeCopyWithImpl<$Res>
 
 /// Create a copy of DiyRecipe
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? ingredients = null,Object? instructions = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? ingredients = null,Object? instructions = null,Object? usage = null,Object? cautions = null,}) {
   return _then(_DiyRecipe(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,ingredients: null == ingredients ? _self._ingredients : ingredients // ignore: cast_nullable_to_non_nullable
 as List<String>,instructions: null == instructions ? _self._instructions : instructions // ignore: cast_nullable_to_non_nullable
+as List<String>,usage: null == usage ? _self.usage : usage // ignore: cast_nullable_to_non_nullable
+as String,cautions: null == cautions ? _self._cautions : cautions // ignore: cast_nullable_to_non_nullable
 as List<String>,
   ));
 }

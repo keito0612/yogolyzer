@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../shared/utils/validators.dart';
+
 part 'select_location_view_model.freezed.dart';
 
 /// 場所の選択肢
@@ -33,6 +35,9 @@ sealed class SelectLocationState with _$SelectLocationState {
     /// 「その他」の場合の入力テキスト
     @Default('') String customLocationText,
 
+    /// バリデーションエラーメッセージ
+    String? validationError,
+
     /// 次の画面に進む準備ができているか
     @Default(false) bool isReadyToNext,
   }) = _SelectLocationState;
@@ -54,21 +59,42 @@ class SelectLocationViewModel extends Notifier<SelectLocationState> {
   void selectLocation(int index) {
     final isOther = index == LocationType.other.index;
 
-    state = state.copyWith(
-      selectedIndex: index,
-      // その他以外を選択した場合はカスタムテキストをクリア
-      customLocationText: isOther ? state.customLocationText : '',
-      // その他の場合はテキスト入力があるまで進めない
-      isReadyToNext: !isOther || state.customLocationText.isNotEmpty,
-    );
+    if (isOther) {
+      // 「その他」選択時は既存のテキストを再バリデーション
+      final validation = state.customLocationText.isNotEmpty
+          ? Validators.validateLocationName(state.customLocationText)
+          : const ValidationResult.invalid('場所を入力してください');
+
+      state = state.copyWith(
+        selectedIndex: index,
+        validationError: validation.isValid ? null : validation.errorMessage,
+        isReadyToNext: validation.isValid,
+      );
+    } else {
+      // 通常の場所選択時はエラーをクリア
+      state = state.copyWith(
+        selectedIndex: index,
+        validationError: null,
+        isReadyToNext: true,
+      );
+    }
   }
 
   /// 「その他」のテキストを設定
   void setCustomLocationText(String text) {
+    final trimmed = text.trim();
+    final validation = Validators.validateLocationName(trimmed);
+
     state = state.copyWith(
-      customLocationText: text,
-      isReadyToNext: text.isNotEmpty,
+      customLocationText: trimmed,
+      validationError: validation.isValid ? null : validation.errorMessage,
+      isReadyToNext: validation.isValid,
     );
+  }
+
+  /// バリデーションエラーをクリア
+  void clearValidationError() {
+    state = state.copyWith(validationError: null);
   }
 
   /// 選択された場所名を取得
@@ -94,5 +120,5 @@ class SelectLocationViewModel extends Notifier<SelectLocationState> {
 /// SelectLocationViewModelのプロバイダー
 final selectLocationViewModelProvider =
     NotifierProvider.autoDispose<SelectLocationViewModel, SelectLocationState>(
-  SelectLocationViewModel.new,
-);
+      SelectLocationViewModel.new,
+    );

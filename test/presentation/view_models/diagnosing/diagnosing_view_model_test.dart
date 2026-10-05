@@ -20,7 +20,7 @@ void main() {
           expect(material, equals('タイル'));
         },
         completed: (_) => fail('diagnosingであるべき'),
-        error: (_) => fail('diagnosingであるべき'),
+        error: (_, __) => fail('diagnosingであるべき'),
       );
     });
 
@@ -34,7 +34,7 @@ void main() {
         completed: (diagnosisId) {
           expect(diagnosisId, equals('12345'));
         },
-        error: (_) => fail('completedであるべき'),
+        error: (_, __) => fail('completedであるべき'),
       );
     });
 
@@ -46,8 +46,9 @@ void main() {
       state.when(
         diagnosing: (a, b, c) => fail('errorであるべき'),
         completed: (_) => fail('errorであるべき'),
-        error: (message) {
+        error: (message, canRetry) {
           expect(message, equals('エラーが発生しました'));
+          expect(canRetry, isTrue);
         },
       );
     });
@@ -122,7 +123,7 @@ void main() {
           expect(material, isEmpty);
         },
         completed: (_) => fail('diagnosingであるべき'),
-        error: (_) => fail('diagnosingであるべき'),
+        error: (_, __) => fail('diagnosingであるべき'),
       );
     });
 
@@ -146,7 +147,7 @@ void main() {
           expect(material, equals('タイル'));
         },
         completed: (_) => fail('diagnosingであるべき'),
-        error: (_) => fail('diagnosingであるべき'),
+        error: (_, __) => fail('diagnosingであるべき'),
       );
 
       // クリーンアップ
@@ -171,7 +172,7 @@ void main() {
         completed: (diagnosisId) {
           expect(diagnosisId, isNotEmpty);
         },
-        error: (_) => fail('completedであるべき'),
+        error: (_, __) => fail('completedであるべき'),
       );
     });
   });

@@ -26,21 +26,25 @@ class SettingsPage extends HookConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('設定'),
+        centerTitle: true,
         automaticallyImplyLeading: false,
       ),
       body: state.when(
         loading: () => const Center(
           child: CircularProgressIndicator(),
         ),
-        loaded: (userInfo, isPremium, isSyncEnabled, appVersion) =>
+        loaded: (userInfo, isPremium, isSyncEnabled, backupInfo, appVersion) =>
             _buildContent(
           context,
           ref,
           userInfo: userInfo,
           isPremium: isPremium,
           isSyncEnabled: isSyncEnabled,
+          backupInfo: backupInfo,
           appVersion: appVersion,
         ),
+        backingUp: (previousState) => _buildBackingUp(context),
+        restoring: (previousState) => _buildRestoring(context),
         error: (message) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -68,12 +72,39 @@ class SettingsPage extends HookConsumerWidget {
     );
   }
 
+  Widget _buildBackingUp(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 16),
+          Text('バックアップ中...'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRestoring(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 16),
+          Text('復元中...'),
+        ],
+      ),
+    );
+  }
+
   Widget _buildContent(
     BuildContext context,
     WidgetRef ref, {
     required UserInfo? userInfo,
     required bool isPremium,
     required bool isSyncEnabled,
+    required BackupInfo? backupInfo,
     required String appVersion,
   }) {
     final viewModel = ref.read(settingsViewModelProvider.notifier);
@@ -101,17 +132,44 @@ class SettingsPage extends HookConsumerWidget {
             }
           },
         ),
-        if (userInfo != null)
-          _buildSwitchTile(
+        if (userInfo != null && isPremium) ...[
+          _buildListTile(
             context,
-            icon: Icons.sync,
-            title: 'データ同期',
-            subtitle: 'クラウドにデータをバックアップ',
-            value: isSyncEnabled,
-            onChanged: (value) async {
-              await viewModel.toggleSync();
+            icon: Icons.backup,
+            title: 'バックアップ',
+            subtitle: backupInfo?.lastBackupAt != null
+                ? '最終: ${_formatDate(backupInfo!.lastBackupAt!)}'
+                : 'タップしてバックアップ',
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () async {
+              final success = await viewModel.backup();
+              if (context.mounted && success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('バックアップが完了しました')),
+                );
+              }
             },
           ),
+          if (backupInfo?.hasBackup == true)
+            _buildListTile(
+              context,
+              icon: Icons.restore,
+              title: '復元',
+              subtitle: 'バックアップからデータを復元',
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () async {
+                final confirmed = await _showRestoreConfirmDialog(context);
+                if (confirmed == true) {
+                  final success = await viewModel.restore();
+                  if (context.mounted && success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('復元が完了しました')),
+                    );
+                  }
+                }
+              },
+            ),
+        ],
 
         const Divider(),
 
@@ -223,26 +281,6 @@ class SettingsPage extends HookConsumerWidget {
     );
   }
 
-  Widget _buildSwitchTile(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    String? subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return SwitchListTile(
-      secondary: Icon(
-        icon,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-      title: Text(title),
-      subtitle: subtitle != null ? Text(subtitle) : null,
-      value: value,
-      onChanged: onChanged,
-    );
-  }
-
   void _showAccountDialog(
     BuildContext context,
     WidgetRef ref,
@@ -315,6 +353,33 @@ class SettingsPage extends HookConsumerWidget {
       default:
         return provider;
     }
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
+  }
+
+  Future<bool?> _showRestoreConfirmDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('復元'),
+        content: const Text(
+          'バックアップからデータを復元すると、現在のデータは上書きされます。\n\n'
+          '本当に復元しますか？',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('キャンセル'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('復元する'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<bool?> _showLogoutConfirmDialog(BuildContext context) {

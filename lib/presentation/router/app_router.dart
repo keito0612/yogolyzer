@@ -6,7 +6,6 @@ import '../pages/camera/camera_page.dart';
 import '../pages/diagnosing/diagnosing_page.dart';
 import '../pages/diagnosis_result/diagnosis_result_page.dart';
 import '../pages/history/history_page.dart';
-import '../pages/history_detail/history_detail_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/login/login_page.dart';
 import '../pages/onboarding/onboarding_page.dart';
@@ -139,13 +138,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // 履歴詳細画面
+      // 履歴詳細画面（DiagnosisResultPageを再利用）
       GoRoute(
         path: AppRoutes.historyDetail,
         name: AppRouteNames.historyDetail,
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
-          return HistoryDetailPage(historyId: id);
+          return DiagnosisResultPage(diagnosisId: id, isFromHistory: true);
         },
       ),
 

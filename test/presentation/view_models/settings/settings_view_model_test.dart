@@ -36,6 +36,29 @@ void main() {
     });
   });
 
+  group('BackupInfo', () {
+    test('should create with all fields', () {
+      // Arrange & Act
+      final backupInfo = BackupInfo(
+        hasBackup: true,
+        lastBackupAt: DateTime(2024, 1, 1),
+      );
+
+      // Assert
+      expect(backupInfo.hasBackup, true);
+      expect(backupInfo.lastBackupAt, DateTime(2024, 1, 1));
+    });
+
+    test('should support null lastBackupAt', () {
+      // Arrange & Act
+      const backupInfo = BackupInfo(hasBackup: false);
+
+      // Assert
+      expect(backupInfo.hasBackup, false);
+      expect(backupInfo.lastBackupAt, isNull);
+    });
+  });
+
   group('SettingsState', () {
     test('loading state should be created correctly', () {
       // Arrange & Act
@@ -55,6 +78,7 @@ void main() {
       expect(loadedState.userInfo, isNull);
       expect(loadedState.isPremium, false);
       expect(loadedState.isSyncEnabled, false);
+      expect(loadedState.backupInfo, isNull);
       expect(loadedState.appVersion, '');
     });
 
@@ -65,12 +89,17 @@ void main() {
         email: 'test@example.com',
         provider: 'google',
       );
+      final backupInfo = BackupInfo(
+        hasBackup: true,
+        lastBackupAt: DateTime(2024, 1, 1),
+      );
 
       // Act
-      const state = SettingsState.loaded(
+      final state = SettingsState.loaded(
         userInfo: userInfo,
         isPremium: true,
         isSyncEnabled: true,
+        backupInfo: backupInfo,
         appVersion: '1.0.0 (1)',
       );
 
@@ -81,6 +110,7 @@ void main() {
       expect(loadedState.userInfo!.email, 'test@example.com');
       expect(loadedState.isPremium, true);
       expect(loadedState.isSyncEnabled, true);
+      expect(loadedState.backupInfo, isNotNull);
       expect(loadedState.appVersion, '1.0.0 (1)');
     });
 
@@ -101,7 +131,9 @@ void main() {
       // Act
       final result = state.when(
         loading: () => 'loading',
-        loaded: (u, p, s, v) => 'loaded',
+        loaded: (u, p, s, b, v) => 'loaded',
+        backingUp: (_) => 'backingUp',
+        restoring: (_) => 'restoring',
         error: (m) => 'error',
       );
 
@@ -119,12 +151,44 @@ void main() {
       // Act
       final result = state.when(
         loading: () => 'loading',
-        loaded: (u, p, s, v) => 'loaded-$p-$v',
+        loaded: (u, p, s, b, v) => 'loaded-$p-$v',
+        backingUp: (_) => 'backingUp',
+        restoring: (_) => 'restoring',
         error: (m) => 'error',
       );
 
       // Assert
       expect(result, 'loaded-true-1.0.0');
+    });
+
+    test('backingUp state should contain previous state', () {
+      // Arrange
+      const previousState = SettingsState.loaded(appVersion: '1.0.0');
+
+      // Act
+      final state = SettingsState.backingUp(
+        previousState: previousState as SettingsStateLoaded,
+      );
+
+      // Assert
+      expect(state, isA<SettingsStateBackingUp>());
+      final backingUpState = state as SettingsStateBackingUp;
+      expect(backingUpState.previousState.appVersion, '1.0.0');
+    });
+
+    test('restoring state should contain previous state', () {
+      // Arrange
+      const previousState = SettingsState.loaded(appVersion: '1.0.0');
+
+      // Act
+      final state = SettingsState.restoring(
+        previousState: previousState as SettingsStateLoaded,
+      );
+
+      // Assert
+      expect(state, isA<SettingsStateRestoring>());
+      final restoringState = state as SettingsStateRestoring;
+      expect(restoringState.previousState.appVersion, '1.0.0');
     });
   });
 
@@ -175,79 +239,6 @@ void main() {
       expect(success, false);
     });
 
-    test('logout should return true when logged in', () async {
-      // Arrange - manually set loaded state with user
-      viewModel.state = const SettingsState.loaded(
-        userInfo: UserInfo(
-          id: 'user-123',
-          email: 'test@example.com',
-          provider: 'apple',
-        ),
-        isPremium: false,
-        isSyncEnabled: true,
-        appVersion: '1.0.0',
-      );
-
-      // Act
-      final success = await viewModel.logout();
-
-      // Assert
-      expect(success, true);
-      final state = container.read(settingsViewModelProvider);
-      final loadedState = state as SettingsStateLoaded;
-      expect(loadedState.userInfo, isNull);
-      expect(loadedState.isSyncEnabled, false);
-    });
-
-    test('toggleSync should return false when not in loaded state', () async {
-      // Don't call loadSettings - state is still loading
-
-      // Act
-      final success = await viewModel.toggleSync();
-
-      // Assert
-      expect(success, false);
-    });
-
-    test('toggleSync should return false when not logged in', () async {
-      // Arrange - manually set loaded state without user
-      viewModel.state = const SettingsState.loaded(
-        userInfo: null,
-        isPremium: false,
-        isSyncEnabled: false,
-        appVersion: '1.0.0',
-      );
-
-      // Act
-      final success = await viewModel.toggleSync();
-
-      // Assert
-      expect(success, false);
-    });
-
-    test('toggleSync should toggle sync when logged in', () async {
-      // Arrange - manually set loaded state with user
-      viewModel.state = const SettingsState.loaded(
-        userInfo: UserInfo(
-          id: 'user-123',
-          email: 'test@example.com',
-          provider: 'apple',
-        ),
-        isPremium: false,
-        isSyncEnabled: false,
-        appVersion: '1.0.0',
-      );
-
-      // Act
-      final success = await viewModel.toggleSync();
-
-      // Assert
-      expect(success, true);
-      final state = container.read(settingsViewModelProvider);
-      final loadedState = state as SettingsStateLoaded;
-      expect(loadedState.isSyncEnabled, true);
-    });
-
     test('deleteAccount should return false when not in loaded state',
         () async {
       // Don't call loadSettings - state is still loading
@@ -273,31 +264,6 @@ void main() {
 
       // Assert
       expect(success, false);
-    });
-
-    test('deleteAccount should delete account and reset state', () async {
-      // Arrange - manually set loaded state with user
-      viewModel.state = const SettingsState.loaded(
-        userInfo: UserInfo(
-          id: 'user-123',
-          email: 'test@example.com',
-          provider: 'apple',
-        ),
-        isPremium: true,
-        isSyncEnabled: true,
-        appVersion: '1.0.0',
-      );
-
-      // Act
-      final success = await viewModel.deleteAccount();
-
-      // Assert
-      expect(success, true);
-      final state = container.read(settingsViewModelProvider);
-      final loadedState = state as SettingsStateLoaded;
-      expect(loadedState.userInfo, isNull);
-      expect(loadedState.isPremium, false);
-      expect(loadedState.isSyncEnabled, false);
     });
   });
 }

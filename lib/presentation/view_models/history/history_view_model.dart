@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../application/services/diagnosis_service.dart';
+import '../../../infrastructure/providers/service_providers.dart';
+
 part 'history_view_model.freezed.dart';
 
 /// 履歴アイテム
@@ -47,8 +50,11 @@ sealed class HistoryState with _$HistoryState {
 
 /// 履歴画面のViewModel
 class HistoryViewModel extends Notifier<HistoryState> {
+  late final DiagnosisService _diagnosisService;
+
   @override
   HistoryState build() {
+    _diagnosisService = ref.watch(diagnosisServiceProvider);
     return const HistoryState.loading();
   }
 
@@ -56,57 +62,26 @@ class HistoryViewModel extends Notifier<HistoryState> {
   Future<void> loadHistory() async {
     state = const HistoryState.loading();
     try {
-      // TODO: 実際のDB呼び出しに置き換える
-      await Future.delayed(const Duration(milliseconds: 300));
+      final diagnoses = await _diagnosisService.getHistory();
 
       if (!ref.mounted) return;
 
-      // モックデータ
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final yesterday = today.subtract(const Duration(days: 1));
-
-      final mockItems = [
-        HistoryItem(
-          id: '1',
-          imagePath: '',
-          stainType: '油汚れ + カビ',
-          location: 'キッチン',
-          material: 'タイル',
-          createdAt: today.add(const Duration(hours: 10, minutes: 30)),
-        ),
-        HistoryItem(
-          id: '2',
-          imagePath: '',
-          stainType: '水垢',
-          location: '浴室',
-          material: '鏡',
-          createdAt: today.add(const Duration(hours: 9, minutes: 15)),
-        ),
-        HistoryItem(
-          id: '3',
-          imagePath: '',
-          stainType: 'カビ',
-          location: '浴室',
-          material: 'ゴムパッキン',
-          createdAt: yesterday.add(const Duration(hours: 15, minutes: 45)),
-        ),
-        HistoryItem(
-          id: '4',
-          imagePath: '',
-          stainType: '黄ばみ',
-          location: 'トイレ',
-          material: '便器',
-          createdAt: yesterday.add(const Duration(hours: 11, minutes: 20)),
-        ),
-      ];
-
-      if (mockItems.isEmpty) {
+      if (diagnoses.isEmpty) {
         state = const HistoryState.empty();
         return;
       }
 
-      final groups = _groupByDate(mockItems);
+      // Diagnosis を HistoryItem に変換
+      final items = diagnoses.map((d) => HistoryItem(
+        id: d.id,
+        imagePath: d.imagePath,
+        stainType: d.stainType,
+        location: d.location,
+        material: d.material,
+        createdAt: d.createdAt,
+      )).toList();
+
+      final groups = _groupByDate(items);
       state = HistoryState.loaded(groups: groups);
     } catch (e) {
       if (!ref.mounted) return;
@@ -166,8 +141,7 @@ class HistoryViewModel extends Notifier<HistoryState> {
     if (currentState is! HistoryStateLoaded) return false;
 
     try {
-      // TODO: 実際のDB削除処理に置き換える
-      await Future.delayed(const Duration(milliseconds: 200));
+      await _diagnosisService.deleteDiagnosis(id);
 
       if (!ref.mounted) return false;
 

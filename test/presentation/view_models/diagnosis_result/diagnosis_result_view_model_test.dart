@@ -144,11 +144,46 @@ void main() {
       final result = state.when(
         loading: () => 'loading',
         loaded: (r, s) => 'loaded',
+        deleting: (r) => 'deleting',
+        deleted: () => 'deleted',
         error: (m) => 'error',
       );
 
       // Assert
       expect(result, 'loading');
+    });
+
+    test('deleting state should contain result', () {
+      // Arrange
+      final result = DiagnosisResult(
+        id: 'test-id',
+        imagePath: '',
+        location: 'キッチン',
+        material: 'タイル',
+        stainType: '油汚れ',
+        confidence: 0.85,
+        recommendedDetergents: const [],
+        diyRecipe: null,
+        cleaningSteps: const [],
+        cautions: const [],
+        createdAt: DateTime.now(),
+      );
+
+      // Act
+      final state = DiagnosisResultState.deleting(result: result);
+
+      // Assert
+      expect(state, isA<DiagnosisResultStateDeleting>());
+      final deletingState = state as DiagnosisResultStateDeleting;
+      expect(deletingState.result.id, 'test-id');
+    });
+
+    test('deleted state should be created correctly', () {
+      // Arrange & Act
+      const state = DiagnosisResultState.deleted();
+
+      // Assert
+      expect(state, isA<DiagnosisResultStateDeleted>());
     });
   });
 
